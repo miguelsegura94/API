@@ -1,0 +1,8 @@
+<Project>
+  <PropertyGroup>
+    <!-- Proyecto donde está el DbContext -->
+    <EFProject>BBDD</EFProject>
+    <!-- Proyecto de inicio -->
+    <EFStartupProject>API</EFStartupProject>
+  </PropertyGroup>
+</Project>
