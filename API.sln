@@ -6,11 +6,16 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "API", "API\API.csproj", "{EA0DE558-AD92-404F-B421-BC9317EEC587}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BBDD", "BBDD\BBDD.csproj", "{4B74E1D4-BA01-4661-AB58-92CE62E2D5AA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{2392C53A-B663-4242-9E9F-E234713ED0A6} = {2392C53A-B663-4242-9E9F-E234713ED0A6}
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Elementos de la solución", "Elementos de la solución", "{0A65B995-D5C7-4CE1-867F-181F8E9F58EA}"
 	ProjectSection(SolutionItems) = preProject
 		Directory.Build.Props = Directory.Build.Props
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GestorBaseDatos", "GestorBD\GestorBaseDatos.csproj", "{2392C53A-B663-4242-9E9F-E234713ED0A6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,8 +31,15 @@ Global
 		{4B74E1D4-BA01-4661-AB58-92CE62E2D5AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4B74E1D4-BA01-4661-AB58-92CE62E2D5AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4B74E1D4-BA01-4661-AB58-92CE62E2D5AA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2392C53A-B663-4242-9E9F-E234713ED0A6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2392C53A-B663-4242-9E9F-E234713ED0A6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2392C53A-B663-4242-9E9F-E234713ED0A6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2392C53A-B663-4242-9E9F-E234713ED0A6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5B9C99EC-486B-479F-8F1A-EC0CB27AE5D2}
 	EndGlobalSection
 EndGlobal

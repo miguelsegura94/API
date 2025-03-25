@@ -1,15 +1,22 @@
 ﻿using System.Text.Json;
 using BBDD.Exceptions;
-using BBDD.GestionCarpeta;
+using GestorBaseDatos.GestionCarpeta;
 using BBDD.Modelos;
 using BBDD.Servicios;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
-{
+{/*
     [ApiController]
     [Route("[controller]")]
     //TODO hacer el CRUD de elo
+    //TODO un metodo que sea para crear una tabla en bd, pedir: nombre tabla y lista de columnas, y hay que comprobar que una columna sea primaria
+    //cada columna tiene nombre de columna tipo de dato, longitud(atributo opcional) y si puede ser null o no, 
+    //tiene que tener un bool que diga si es clave primaria esa columna
+    //un parametro opcional que sera si tiene foreing key contra otra tabla, 
+    //la foreign key nombre columna , nombre de tabla origen, y nombre de columna origen+
+
+    //TODO el metodo tiene que pedir los datos para la nueva tabla
     public class SkinController : ControllerBase
     {
         private readonly ServicioSkin servicioSkin;
@@ -229,5 +236,5 @@ namespace API.Controllers
             }
             return BadRequest(gestion);
         }
-    }
+    }*/
 }

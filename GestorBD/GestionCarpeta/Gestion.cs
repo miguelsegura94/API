@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using GestorBaseDatos;
 
-namespace BBDD.GestionCarpeta
+namespace GestorBaseDatos.GestionCarpeta
 {
     public class Gestion
     {

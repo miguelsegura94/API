@@ -12,15 +12,22 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace BBDD.Servicios
 {
-    public class ServicioSkin
+    public class ServicioUsuario
     {
+
+        public List<Usuario> usuariosFake = new List<Usuario>() { new Usuario() { Id = 1, Nombre = "amse" } };
+
+        // private readonly AMSEDbContext context;
         private readonly string _connectionString;
 
-        public ServicioSkin(string connectionString)
+        public ServicioUsuario(/*AMSEDbContext _context,*/ string connectionString)
         {
-            
+            //context = _context;
             _connectionString = connectionString;
         }
+        //TODO: hacer todo asincrono
+        //TODO: mirar como funcionan las transacciones de base de datos (la idea del context.savechanges es la misma que las transactions el commit pero sin hacer una transaction como tal)
+        
         public Gestion GetListaUsuario()
         {
             Gestion gestion = new Gestion();
@@ -43,7 +50,7 @@ namespace BBDD.Servicios
                             Id = reader.GetInt32(0),
                             Nombre = reader.GetString(1),
                             Edad = reader.GetInt32(2),
-                            dinero = reader.GetInt32(6),
+                            dinero = reader.GetInt32(6), 
                             Elo = new Elo
                             {
                                 Id = reader.GetInt32(3),
@@ -81,7 +88,7 @@ namespace BBDD.Servicios
         public Gestion GetUsuarioById(int id)
         {
             Gestion gestion = new Gestion();
-
+            
             try
             {
                 using (SqlConnection connection = new SqlConnection(_connectionString))
@@ -161,7 +168,7 @@ namespace BBDD.Servicios
             }
             return gestion;
         }
-
+        
         public Gestion CrearUsuarioGestion(UsuarioInsert modeloRequest)
         {
             Gestion gestion = new Gestion();
@@ -369,7 +376,7 @@ namespace BBDD.Servicios
                         updateCommand.Parameters.AddWithValue("@id", id);
                         updateCommand.ExecuteNonQuery();
                         gestion.Correct("Dinero añadido correctamente");
-
+                        
                     }
                     else
                     {
@@ -401,7 +408,7 @@ namespace BBDD.Servicios
                 }
                 return gestion;
 
-            }
+            } 
         }
         public Gestion AñadirDineroUsuario(int id, int cantidad)
         {
@@ -415,7 +422,7 @@ namespace BBDD.Servicios
                         gestion.setError("Error: El ID del usuario no es válido.");
                         return gestion;
                     }
-
+                    
                     connection.Open();
                     string checkQuery = "SELECT COUNT(*) FROM usuarios WHERE id=@id";
                     SqlCommand checkCommand = new SqlCommand(checkQuery, connection);

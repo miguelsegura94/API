@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Text.Json;
 using BBDD.Exceptions;
-using BBDD.GestionCarpeta;
+using GestorBaseDatos.GestionCarpeta;
 using BBDD.Modelos;
 using BBDD.Servicios;
 using Microsoft.AspNetCore.Mvc;
@@ -13,11 +13,11 @@ namespace API.Controllers
     [Route("[controller]")]
     public class UsuarioController : ControllerBase
     {
-        private readonly ServicioBD servicioBD;
+        private readonly ServicioUsuario servicioUsuario;
         
-        public UsuarioController(ServicioBD _servicioBD)
+        public UsuarioController(ServicioUsuario _servicioUsuario)
         {
-            servicioBD = _servicioBD;
+            servicioUsuario = _servicioUsuario;
         }
         //TODO hacer el metodo comprar skin, que busque si existe la skin por id, y si existe, que mire que tenga dinero
         //y asignarsela al usuario restando el precio
@@ -27,7 +27,7 @@ namespace API.Controllers
             Gestion gestion = new Gestion();
             try
             {
-                gestion = servicioBD.GetListaUsuario();
+                gestion = servicioUsuario.GetListaUsuario();
                 if (gestion.data != null && gestion.data.Count > 0) 
                 {
                     gestion.Correct();
@@ -63,7 +63,7 @@ namespace API.Controllers
             Gestion gestion = new Gestion();
             try
             {
-                gestion = servicioBD.GetUsuarioById(id);
+                gestion = servicioUsuario.GetUsuarioById(id);
                 if (gestion.data != null)
                 {
                     gestion.Correct();
@@ -107,7 +107,7 @@ namespace API.Controllers
             Gestion gestion = new Gestion();
             try
             {
-                gestion = servicioBD.CrearUsuarioGestion(modeloRequest);
+                gestion = servicioUsuario.CrearUsuarioGestion(modeloRequest);
                 if (gestion.isCorrect())
                 {
                     return Ok(gestion);
@@ -154,7 +154,7 @@ namespace API.Controllers
             Gestion gestion = new Gestion();
             try
             {
-                gestion = servicioBD.ActualizarUsuario(modeloRequest, id);
+                gestion = servicioUsuario.ActualizarUsuario(modeloRequest, id);
                 if (gestion.isCorrect())
                 {
                     return Ok(gestion);
@@ -196,7 +196,7 @@ namespace API.Controllers
             Gestion gestion = new Gestion();
             try
             {
-                gestion = servicioBD.ModificarDineroUsuario(id, cantidad);
+                gestion = servicioUsuario.ModificarDineroUsuario(id, cantidad);
                 if (gestion.isCorrect())
                 {
                     return Ok(gestion);
@@ -238,7 +238,7 @@ namespace API.Controllers
             Gestion gestion = new Gestion();
             try
             {
-                gestion = servicioBD.AñadirDineroUsuario(id, cantidad);
+                gestion = servicioUsuario.AñadirDineroUsuario(id, cantidad);
                 if (gestion.isCorrect())
                 {
                     return Ok(gestion);
@@ -280,7 +280,7 @@ namespace API.Controllers
             Gestion gestion = new Gestion();
             try
             {
-                gestion = servicioBD.EliminarUsuarioGestion(id);
+                gestion = servicioUsuario.EliminarUsuarioGestion(id);
                 if (gestion.isCorrect())
                 {
                     return Ok(gestion);

@@ -12,10 +12,12 @@ var builder = WebApplication.CreateBuilder(args);
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"), b => b.MigrationsAssembly("BBDD")));*/
 
 // Registrar ServicioBD como un servicio inyectable
-builder.Services.AddScoped<ServicioBD>(provider =>
-    new ServicioBD(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<ServicioUsuario>(provider =>
+    new ServicioUsuario(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.AddScoped<ServicioElo>(provider =>
     new ServicioElo(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<ServicioBD>(provider =>
+    new ServicioBD(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

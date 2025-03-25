@@ -15,4 +15,8 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\GestorBD\GestorBaseDatos.csproj" />
+  </ItemGroup>
+
 </Project>
