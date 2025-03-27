@@ -15,7 +15,7 @@ namespace BBDD.Modelos
     {
         public string Nombre { get; set; }
         public string TipoDato { get; set; }
-        public string? Longitud { get; set; } = null;
+        public int? Longitud { get; set; } = 0;
         public bool PrimaryKey { get; set; } = false;
         public bool Null { get; set; } = false;
         public ForeignKey? ForeignKey { get; set; } = null;
@@ -25,8 +25,15 @@ namespace BBDD.Modelos
     { 
         public string Nombre { get; set; }
         public string TablaOrigen { get; set; }
-        public string ColumnaOrigen { get; set; }
     }
-
+    public class ColumnaInsert
+    {
+        public string Nombre { get; set; }
+        public string TipoDato { get; set; }
+    }
+    public class ColumnaDelete
+    {
+        public string Nombre { get; set; }
+    }
 
 }

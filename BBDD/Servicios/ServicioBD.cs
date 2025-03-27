@@ -19,10 +19,10 @@ namespace BBDD.Servicios
             _connectionString = connectionString;
             _gestorBD = new GestorBD();
         }
-        public Gestion GetListaCompletaServicio(string tabla)
+        public Gestion GetListaCompletaRegistrosServicio(string tabla)
         {
             Gestion gestion = new Gestion();
-            gestion=_gestorBD.GetListaCompletaGestor(tabla, _connectionString);
+            gestion=_gestorBD.GetListaCompletaRegistrosGestor(tabla, _connectionString);
             return gestion;
         }
         public Gestion GetDatoEnTablaPorIdServicio(string tabla,int id)
@@ -41,6 +41,36 @@ namespace BBDD.Servicios
         {
             Gestion gestion = new Gestion();
             gestion = _gestorBD.CrearTablaGestor(modeloTabla, _connectionString);
+            return gestion;
+        }
+        public Gestion EliminarTablaServicio(string tabla)
+        {
+            Gestion gestion = new Gestion();
+            gestion = _gestorBD.EliminarTablaGestor(tabla, _connectionString);
+            return gestion;
+        }
+        public Gestion GetColumnasTablaServicio(string tabla)
+        {
+            Gestion gestion = new Gestion();
+            gestion = _gestorBD.GetColumnasTablaGestor(tabla, _connectionString);
+            return gestion;
+        }
+        public Gestion AñadirColumnaCompletaATablaServicio(string tabla,Columna columna)
+        {
+            Gestion gestion = new Gestion();
+            gestion = _gestorBD.AñadirColumnaCompletaATablaGestor(tabla,columna, _connectionString);
+            return gestion;
+        }
+        public Gestion AñadirColumnaBasicaATablaServicio(string tabla, ColumnaInsert columna)
+        {
+            Gestion gestion = new Gestion();
+            gestion = _gestorBD.AñadirColumnaBasicaATablaGestor(tabla, columna, _connectionString);
+            return gestion;
+        }
+        public Gestion EliminarColumnaTablaServicio(string tabla, ColumnaDelete columna)
+        {
+            Gestion gestion = new Gestion();
+            gestion = _gestorBD.EliminarColumnaTablaGestor(tabla, columna, _connectionString);
             return gestion;
         }
         //AQUI TENGO QUE CREAR LOS METODOS QUE VOY A LLAMAR DESDE EL CONTROLLER, ESTOS METODOS RECIBIRAN LOS PARAMETROS NECESARIOS DESDE
