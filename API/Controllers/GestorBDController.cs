@@ -83,28 +83,52 @@ namespace API.Controllers
             return BadRequest(gestion);
         }
         /// <summary>
+        /// Hace una llamada a la base de datos y obtiene uno o mas registros de la tabla especificada
+        /// </summary>
+        /// <param name="tabla">Tabla donde se buscan los registros</param>
+        /// <param name="columna">Columna donde se encuentran los valores a buscar</param>
+        /// <param name="valor">Valor a buscar en la columna</param>
+        /// <returns>Si es correcto devuelve uno o mas registros,si no un mensaje de error especificando cual es el error</returns>
+        [HttpGet("ObtenerRegistroEnTablaPorValor/{tabla}/{columna}/{valor}")]
+        public IActionResult ObtenerRegistroEnTablaPorValor(string tabla,string columna,string valor)
+        {
+            Gestion gestion = new Gestion();
+            try
+            {
+                gestion = servicioBD.GetRegistroEnTablaPorValorServicio(tabla,columna,valor);
+                if (gestion.isCorrect())
+                {
+                    return Ok(gestion);
+                }
+                else
+                {
+                    return NotFound(gestion);
+                }
+            }
+            catch (Exception ex)
+            {
+                gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message });
+            }
+            return BadRequest(gestion);
+        }
+        /// <summary>
         /// Hace una llamada a la base de datos para obtener el json necesario para crear un nuevo registro en otro metodo
         /// </summary>
         /// <param name="tabla">Nombre de la tabla en la que recibir el json con los atributos</param>
         /// <returns>Devuelve el json con los atributos necesarios para crear un nuevo registro en otro metodo</returns>
-        [HttpGet("ObtenerJson/{tabla}")]
+        [HttpGet("ObtenerJsonParaRegistro/{tabla}")]
         public IActionResult ObtenerJsonParaRegistro(string tabla)
         {
             Gestion gestion = new Gestion();
             try
             {
                 gestion = servicioBD.ObtenerJsonParaRegistroEnTablaServicio(tabla);
-                if (gestion.data != null && gestion.data.Count > 0)
+                if (gestion.isCorrect())
                 {
-                    gestion.Correct();
                     return Ok(gestion);
                 }
                 else
                 {
-                    if (string.IsNullOrEmpty(gestion.error))
-                    {
-                        gestion.setError("Error: No se encontraron registros en la tabla " + tabla);
-                    }
                     return NotFound(gestion);
                 }
             }
@@ -177,6 +201,34 @@ namespace API.Controllers
                     }
                 }
                 gestion = servicioBD.CrearRegistroEnTablaFrombodyServicio(tabla, datos);
+                if (gestion.isCorrect())
+                {
+                    return Ok(gestion);
+                }
+                else
+                {
+                    return NotFound(gestion);
+                }
+            }
+            catch (Exception ex)
+            {
+                gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message });
+            }
+            return BadRequest(gestion);
+        }
+        /// <summary>
+        /// Hace una llamada a la base de datos y elimina el registro especifico de la tabla
+        /// </summary>
+        /// <param name="tabla">Nombre de la tabla de la que eliminar el registro</param>
+        /// <param name="registro">Nombre de la columna y el valor del registro a eliminar</param>
+        /// <returns>Devuelve el mensaje correcto o de error correspondiente</returns>
+        [HttpDelete("EliminarRegistro/{tabla}")]
+        public IActionResult EliminarRegistroEnTabla(string tabla,[FromBody] RegistroDelete registro)
+        {
+            Gestion gestion = new Gestion();
+            try
+            {
+                gestion = servicioBD.EliminarRegistroEnTablaServicio(tabla, registro);
                 if (gestion.isCorrect())
                 {
                     return Ok(gestion);

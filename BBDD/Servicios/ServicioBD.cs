@@ -31,6 +31,12 @@ namespace BBDD.Servicios
             gestion = _gestorBD.GetDatoEnTablaPorIdGestor(tabla,id, _connectionString);
             return gestion;
         }
+        public Gestion GetRegistroEnTablaPorValorServicio(string tabla, string columna, string valor)
+        {
+            Gestion gestion = new Gestion();
+            gestion = _gestorBD.GetRegistroEnTablaPorValorGestor(tabla, columna, valor, _connectionString);
+            return gestion;
+        }
         public Gestion ObtenerJsonParaRegistroEnTablaServicio(string tabla)
         {
             Gestion gestion = new Gestion();
@@ -47,6 +53,12 @@ namespace BBDD.Servicios
         {
             Gestion gestion = new Gestion();
             gestion = _gestorBD.CrearRegistroEnTablaFrombodyGestor(tabla, datosAñadir, _connectionString);
+            return gestion;
+        }
+        public Gestion EliminarRegistroEnTablaServicio(string tabla, RegistroDelete registro)
+        {
+            Gestion gestion = new Gestion();
+            gestion = _gestorBD.EliminarRegistroEnTablaGestor(tabla, registro, _connectionString);
             return gestion;
         }
         public Gestion CrearTablaServicio(TablaBD modeloTabla)
