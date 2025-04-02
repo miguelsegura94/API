@@ -7,6 +7,7 @@ using GestorBaseDatos;
 
 namespace GestorBaseDatos.GestionCarpeta
 {
+    
     public class Gestion
     {
         public bool result { get; set; }
@@ -27,6 +28,16 @@ namespace GestorBaseDatos.GestionCarpeta
             result = false;
             error = errorMessage;
         }
+        public void setError(string errorMessage,List<dynamic> parametros)
+        {
+            if (parametros != null && parametros.Count > 0)
+            {
+                errorMessage = string.Format(errorMessage, parametros.ToArray());
+            }
+            result = false;
+            error = errorMessage;
+        }
+        
 
         public string error { get; set; }
         public string correct { get; set; }

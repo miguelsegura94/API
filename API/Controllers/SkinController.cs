@@ -9,7 +9,6 @@ namespace API.Controllers
 {/*
     [ApiController]
     [Route("[controller]")]
-    //TODO hacer el CRUD de elo
     //TODO un metodo que sea para crear una tabla en bd, pedir: nombre tabla y lista de columnas, y hay que comprobar que una columna sea primaria
     //cada columna tiene nombre de columna tipo de dato, longitud(atributo opcional) y si puede ser null o no, 
     //tiene que tener un bool que diga si es clave primaria esa columna

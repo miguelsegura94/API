@@ -43,21 +43,9 @@ namespace API.Controllers
                     return NotFound(gestion);
                 }
             }
-            catch (NullReferenceException ex)
-            {
-                gestion.setError($"Error de referencia nula: {ex.Message}");
-            }
-            catch (APIException ex)
-            {
-                gestion.setError($"Error de API: {ex.Message}");
-            }
-            catch (BDException ex)
-            {
-                gestion.setError($"Error de base de datos: {ex.Message}");
-            }
             catch (Exception ex)
             {
-                gestion.setError($"Ocurrió un error inesperado: {ex.Message}");
+                gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message });
             }
             return BadRequest(gestion);
         }
@@ -82,32 +70,19 @@ namespace API.Controllers
                     return NotFound(gestion);
                 }
             }
-            catch (NullReferenceException ex)
-            {
-                gestion.setError($"Error de referencia nula: {ex.Message}");
-            }
-            catch (APIException ex)
-            {
-                gestion.setError($"Error de API: {ex.Message}");
-            }
-            catch (BDException ex)
-            {
-                gestion.setError($"Error de base de datos: {ex.Message}");
-            }
             catch (Exception ex)
             {
-                gestion.setError($"Ocurrió un error inesperado: {ex.Message}");
+                gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message });
             }
             return BadRequest(gestion);
         }
-        
-        [HttpPost("NoUsar/{tabla}")]
-        public IActionResult CrearDatoEnTabla(string tabla)
+        [HttpGet("ObtenerJson/{tabla}")]
+        public IActionResult ObtenerJsonParaRegistro(string tabla)
         {
             Gestion gestion = new Gestion();
             try
             {
-                gestion = servicioBD.CrearDatoEnTablaServicio(tabla);
+                gestion = servicioBD.ObtenerJsonParaRegistroEnTablaServicio(tabla);
                 if (gestion.data != null && gestion.data.Count > 0)
                 {
                     gestion.Correct();
@@ -122,33 +97,81 @@ namespace API.Controllers
                     return NotFound(gestion);
                 }
             }
-            catch (FormatException ex)
+            catch (Exception ex)
             {
-                gestion.setError($"Error: Formato incorrecto del modelo.{ex.Message}");
+                gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message });
             }
-            catch (NullReferenceException ex)
+            return BadRequest(gestion);
+        }/*
+        [HttpPost("NoUsar/{tabla}/{datosAnadir}")]
+        public IActionResult CrearDatoEnTabla(string tabla,string datosAnadir)
+        {
+            Gestion gestion = new Gestion();
+            try
             {
-                gestion.setError($"Error modelo null: {ex.Message}");
-            }
-            catch (InvalidOperationException ex)
-            {
-                gestion.setError($"Error de operación no válida: {ex.Message}");
-            }
-            catch (BDException ex)
-            {
-                gestion.setError($"Error de base de datos: {ex.Message}");
-            }
-            catch (JsonException ex)
-            {
-                gestion.setError($"Error en el formato JSON: {ex.Message}");
-            }
-            catch (APIException ex)
-            {
-                gestion.setError($"Error de API : {ex.Message}");
+                gestion = servicioBD.CrearDatoEnTablaServicio(tabla,datosAnadir);
+                if (gestion.isCorrect())
+                {
+                    return Ok(gestion);
+                }
+                else
+                {
+                    return NotFound(gestion);
+                }
             }
             catch (Exception ex)
             {
-                gestion.setError($"Ocurrió un error: {ex.Message}");
+                gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message });
+            }
+            return BadRequest(gestion);
+        }*/
+        [HttpPost("CrearRegistroEnTablaFrombody/{tabla}")]
+        public IActionResult CrearRegistroEnTablaFrombody(string tabla, [FromBody] JsonElement datosAñadir)
+        {
+            Gestion gestion = new Gestion();
+            try
+            {
+                var datos = new Dictionary<string, object>();
+
+                foreach (var property in datosAñadir.EnumerateObject())
+                {
+                    if (property.Value.ValueKind == JsonValueKind.String)
+                    {
+                        datos[property.Name] = property.Value.GetString();
+                    }
+                    else if (property.Value.ValueKind == JsonValueKind.Number)
+                    {
+                        if (property.Value.TryGetInt32(out int intValue))
+                        {
+                            datos[property.Name] = intValue;
+                        }
+                        else if (property.Value.TryGetDouble(out double doubleValue))
+                        {
+                            datos[property.Name] = doubleValue;
+                        }
+                    }
+                    else if (property.Value.ValueKind == JsonValueKind.True || property.Value.ValueKind == JsonValueKind.False)
+                    {
+                        datos[property.Name] = property.Value.GetBoolean();
+                    }
+                    else
+                    {
+                        datos[property.Name] = null;
+                    }
+                }
+                gestion = servicioBD.CrearRegistroEnTablaFrombodyServicio(tabla, datos);
+                if (gestion.isCorrect())
+                {
+                    return Ok(gestion);
+                }
+                else
+                {
+                    return NotFound(gestion);
+                }
+            }
+            catch (Exception ex)
+            {
+                gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message });
             }
             return BadRequest(gestion);
         }
@@ -160,33 +183,9 @@ namespace API.Controllers
             {
                 gestion = servicioBD.CrearTablaServicio(modeloTabla);
             }
-            catch (FormatException ex)
-            {
-                gestion.setError($"Error: Formato incorrecto del modelo.{ex.Message}");
-            }
-            catch (NullReferenceException ex)
-            {
-                gestion.setError($"Error modelo null: {ex.Message}");
-            }
-            catch (InvalidOperationException ex)
-            {
-                gestion.setError($"Error de operación no válida: {ex.Message}");
-            }
-            catch (BDException ex)
-            {
-                gestion.setError($"Error de base de datos: {ex.Message}");
-            }
-            catch (JsonException ex)
-            {
-                gestion.setError($"Error en el formato JSON: {ex.Message}");
-            }
-            catch (APIException ex)
-            {
-                gestion.setError($"Error de API : {ex.Message}");
-            }
             catch (Exception ex)
             {
-                gestion.setError($"Ocurrió un error: {ex.Message}");
+                gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message });
             }
             return BadRequest(gestion);
         }
@@ -206,29 +205,9 @@ namespace API.Controllers
                     return BadRequest(gestion);
                 }
             }
-            catch (FormatException ex)
-            {
-                gestion.setError($"Error: No es un número.{ex.Message}");
-            }
-            catch (NullReferenceException ex)
-            {
-                gestion.setError($"Error: {ex.Message}");
-            }
-            catch (InvalidOperationException ex)
-            {
-                gestion.setError($"Error de operación inválida: {ex.Message}");
-            }
-            catch (BDException ex)
-            {
-                gestion.setError($"Error de base de datos: {ex.Message}");
-            }
-            catch (APIException ex)
-            {
-                gestion.setError($"Error de API : {ex.Message}");
-            }
             catch (Exception ex)
             {
-                gestion.setError($"Ocurrió un error: {ex.Message}");
+                gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message });
             }
             return BadRequest(gestion);
         }
@@ -258,21 +237,9 @@ namespace API.Controllers
                     return NotFound(gestion);
                 }
             }
-            catch (NullReferenceException ex)
-            {
-                gestion.setError($"Error de referencia nula: {ex.Message}");
-            }
-            catch (APIException ex)
-            {
-                gestion.setError($"Error de API: {ex.Message}");
-            }
-            catch (BDException ex)
-            {
-                gestion.setError($"Error de base de datos: {ex.Message}");
-            }
             catch (Exception ex)
             {
-                gestion.setError($"Ocurrió un error inesperado: {ex.Message}");
+                gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message });
             }
             return BadRequest(gestion);
         }
@@ -291,33 +258,9 @@ namespace API.Controllers
             {
                 gestion = servicioBD.AñadirColumnaCompletaATablaServicio(tabla, columna);
             }
-            catch (FormatException ex)
-            {
-                gestion.setError($"Error: Formato incorrecto del modelo.{ex.Message}");
-            }
-            catch (NullReferenceException ex)
-            {
-                gestion.setError($"Error modelo null: {ex.Message}");
-            }
-            catch (InvalidOperationException ex)
-            {
-                gestion.setError($"Error de operación no válida: {ex.Message}");
-            }
-            catch (BDException ex)
-            {
-                gestion.setError($"Error de base de datos: {ex.Message}");
-            }
-            catch (JsonException ex)
-            {
-                gestion.setError($"Error en el formato JSON: {ex.Message}");
-            }
-            catch (APIException ex)
-            {
-                gestion.setError($"Error de API : {ex.Message}");
-            }
             catch (Exception ex)
             {
-                gestion.setError($"Ocurrió un error: {ex.Message}");
+                gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message });
             }
             return BadRequest(gestion);
         }
@@ -330,33 +273,9 @@ namespace API.Controllers
             {
                 gestion = servicioBD.AñadirColumnaBasicaATablaServicio(tabla, columna);
             }
-            catch (FormatException ex)
-            {
-                gestion.setError($"Error: Formato incorrecto del modelo.{ex.Message}");
-            }
-            catch (NullReferenceException ex)
-            {
-                gestion.setError($"Error modelo null: {ex.Message}");
-            }
-            catch (InvalidOperationException ex)
-            {
-                gestion.setError($"Error de operación no válida: {ex.Message}");
-            }
-            catch (BDException ex)
-            {
-                gestion.setError($"Error de base de datos: {ex.Message}");
-            }
-            catch (JsonException ex)
-            {
-                gestion.setError($"Error en el formato JSON: {ex.Message}");
-            }
-            catch (APIException ex)
-            {
-                gestion.setError($"Error de API : {ex.Message}");
-            }
             catch (Exception ex)
             {
-                gestion.setError($"Ocurrió un error: {ex.Message}");
+                gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message });
             }
             return BadRequest(gestion);
         }
@@ -376,29 +295,9 @@ namespace API.Controllers
                     return BadRequest(gestion);
                 }
             }
-            catch (FormatException ex)
-            {
-                gestion.setError($"Error: No es un número.{ex.Message}");
-            }
-            catch (NullReferenceException ex)
-            {
-                gestion.setError($"Error: {ex.Message}");
-            }
-            catch (InvalidOperationException ex)
-            {
-                gestion.setError($"Error de operación inválida: {ex.Message}");
-            }
-            catch (BDException ex)
-            {
-                gestion.setError($"Error de base de datos: {ex.Message}");
-            }
-            catch (APIException ex)
-            {
-                gestion.setError($"Error de API : {ex.Message}");
-            }
             catch (Exception ex)
             {
-                gestion.setError($"Ocurrió un error: {ex.Message}");
+                gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message });
             }
             return BadRequest(gestion);
         }

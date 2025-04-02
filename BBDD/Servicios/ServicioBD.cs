@@ -31,10 +31,22 @@ namespace BBDD.Servicios
             gestion = _gestorBD.GetDatoEnTablaPorIdGestor(tabla,id, _connectionString);
             return gestion;
         }
-        public Gestion CrearDatoEnTablaServicio(string tabla)
+        public Gestion ObtenerJsonParaRegistroEnTablaServicio(string tabla)
         {
             Gestion gestion = new Gestion();
-            gestion = _gestorBD.CrearDatoEnTablaGestor(tabla, _connectionString);
+            gestion = _gestorBD.ObtenerJsonParaRegistroEnTablaGestor(tabla, _connectionString);
+            return gestion;
+        }
+        /*public Gestion CrearDatoEnTablaServicio(string tabla,string datosAñadir)
+        {
+            Gestion gestion = new Gestion();
+            gestion = _gestorBD.CrearRegistroEnTablaGestor(tabla,datosAñadir, _connectionString);
+            return gestion;
+        }*/
+        public Gestion CrearRegistroEnTablaFrombodyServicio(string tabla, Dictionary<string, object> datosAñadir)
+        {
+            Gestion gestion = new Gestion();
+            gestion = _gestorBD.CrearRegistroEnTablaFrombodyGestor(tabla, datosAñadir, _connectionString);
             return gestion;
         }
         public Gestion CrearTablaServicio(TablaBD modeloTabla)

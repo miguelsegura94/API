@@ -7,7 +7,6 @@ namespace API.Controllers
 {
     [ApiController]
     [Route("[controller]")]
-    //TODO hacer el CRUD de elo
     public class EloController : ControllerBase
     {
         private readonly ServicioElo servicioElo;
