@@ -137,29 +137,7 @@ namespace API.Controllers
                 gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message });
             }
             return BadRequest(gestion);
-        }/*
-        [HttpPost("NoUsar/{tabla}/{datosAnadir}")]
-        public IActionResult CrearDatoEnTabla(string tabla,string datosAnadir)
-        {
-            Gestion gestion = new Gestion();
-            try
-            {
-                gestion = servicioBD.CrearDatoEnTablaServicio(tabla,datosAnadir);
-                if (gestion.isCorrect())
-                {
-                    return Ok(gestion);
-                }
-                else
-                {
-                    return NotFound(gestion);
-                }
-            }
-            catch (Exception ex)
-            {
-                gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message });
-            }
-            return BadRequest(gestion);
-        }*/
+        }
         /// <summary>
         /// Hace una llamada a la base de datos y crear un nuevo registro en una tabla especificada
         /// </summary>

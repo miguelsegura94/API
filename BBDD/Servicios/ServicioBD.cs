@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using BBDD.Modelos;
-using GestorBaseDatos;
 using GestorBaseDatos.GestionCarpeta;
-using static GestorBaseDatos.GestorBD;
+using GestorBaseDatos.GestorBD;
+using GestorBaseDatos.GestorBD.GestorBD;
 
 namespace BBDD.Servicios
 {
@@ -43,12 +43,6 @@ namespace BBDD.Servicios
             gestion = _gestorBD.ObtenerJsonParaRegistroEnTablaGestor(tabla, _connectionString);
             return gestion;
         }
-        /*public Gestion CrearDatoEnTablaServicio(string tabla,string datosAñadir)
-        {
-            Gestion gestion = new Gestion();
-            gestion = _gestorBD.CrearRegistroEnTablaGestor(tabla,datosAñadir, _connectionString);
-            return gestion;
-        }*/
         public Gestion CrearRegistroEnTablaFrombodyServicio(string tabla, Dictionary<string, object> datosAñadir)
         {
             Gestion gestion = new Gestion();
