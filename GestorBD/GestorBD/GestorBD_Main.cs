@@ -9,9 +9,10 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace GestorBaseDatos.GestorBD.GestorBD
 {
-    //TODO PREGUNTAR A CHAT GPT COMO HACER CLASES PARCIALES EN C#
 
-    //TODO HACER UN METODO ELIMINAR REGISTRO POR atributo generico Y TAMBIEN EDITAR REGISTRO
+    //TODO UNIFICAR EN EL MISMO METODO QUE COMPRUEBE QUE LA TABLA SEA VALIDA Y QUE LOS CARACTERES SEAN CORRECTOS
+    //TODO HACER UN METODO PARA COMPROBAR QUE LOS VALORES QUE INGRESO SON DEL TIPO DE DATO NECESARIO
+
     //TODO MASTERCLASS SERIALIZACION Y DESERIALIZACION PARA UNIFICAR "FILTROS"
     //BAJAR EL POSTMAN Y CREAR COLECCION QUE SE LLAME GESTION BD
 
@@ -187,7 +188,26 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                     }
                 }
             }
+            return existe;
+        }
+        public bool ExisteValor(string tabla, string columna,string valor, string connectionString)
+        {
+            bool existe = false;
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    string query = $"SELECT COUNT(*) FROM {tabla} WHERE {columna} = @valor";
 
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@valor", valor);
+                        int count = (int)command.ExecuteScalar();
+                        if (count > 0)
+                        {
+                            existe = true;
+                        }
+                    }
+                }
             return existe;
         }
         /// <summary>

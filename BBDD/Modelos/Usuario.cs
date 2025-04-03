@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace BBDD.Modelos
 {
-    //TODO SEPARAR CLASES API Y CLASES SERVICIO
+    
     [Table("Usuarios")]
     public class Usuario
     {

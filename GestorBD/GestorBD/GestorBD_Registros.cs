@@ -358,10 +358,94 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                 {
                     gestion.setError("Error: El nombre de la tabla " + tablaBuscar + " no es válido");
                 }
+            }
+            catch (Exception ex)
+            {
+                gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message });
+            }
+            return gestion;
+        }
+        /// <summary>
+        /// Edita uno o varios registros a la vez en una tabla especifica
+        /// </summary>
+        /// <param name="tablaBuscar">Tabla en la que se editan los registros</param>
+        /// <param name="registro">Aqui van uno o mas datos con los anteriores datos y los nuevos para editar</param>
+        /// <param name="connectionString">La cadena de conexion a la base de datos</param>
+        /// <returns>Devulve el mensaje correcto o el mensaje de error especificando en lo que ha fallado</returns>
+        public Gestion EditarUnoOVariosRegistrosEnTablaGestor(string tablaBuscar, RegistroEditar registro, string connectionString)
+        {
+            Gestion gestion = new Gestion();
+            try
+            {
+                if (EsNombreValido(tablaBuscar))
+                {
+                    if (ExisteTabla(tablaBuscar, connectionString))
+                    {
+                        for (int i = 0; i < registro.ValoresExistentes.Count; i++)
+                        {
+                            if (EsNombreValido(registro.ValoresExistentes[i].NombreColumna))
+                            {
+                                if (ExisteColumna(tablaBuscar, registro.ValoresExistentes[i].NombreColumna, connectionString))
+                                {
+                                    if (EsNombreValido(registro.ValoresNuevos[i].NombreColumna))
+                                    {
+                                        if (ExisteColumna(tablaBuscar, registro.ValoresNuevos[i].NombreColumna, connectionString))
+                                        {
+                                            if (ExisteValor(tablaBuscar, registro.ValoresExistentes[i].NombreColumna, registro.ValoresExistentes[i].ValorRegistro, connectionString))
+                                            {
+                                                using (SqlConnection connection = new SqlConnection(connectionString))
+                                                {
+                                                    connection.Open();
+                                                    string query = $"UPDATE {tablaBuscar} SET {registro.ValoresNuevos[i].NombreColumna} = @NuevoValor WHERE {registro.ValoresExistentes[i].NombreColumna} = @Valor";
+                                                    using (SqlCommand command = new SqlCommand(query, connection))
+                                                    {
+                                                        command.Parameters.AddWithValue("@Valor", registro.ValoresExistentes[i].ValorRegistro);
+                                                        command.Parameters.AddWithValue("@NuevoValor", registro.ValoresNuevos[i].ValorRegistro);
+                                                        int borrado = command.ExecuteNonQuery();
+                                                        if (borrado > 0)
+                                                        {
+                                                            gestion.Correct("Registro editado correctamente.");
+                                                        }
+                                                    }
 
+                                                }
+                                            }
+                                            else
+                                            {
+                                                gestion.setError($"Error: No existe el registro {registro.ValoresExistentes[i].ValorRegistro} en la columna {registro.ValoresExistentes[i].NombreColumna}");
+                                            }
+                                        }
+                                        else
+                                        {
+                                            gestion.setError($"Error: En la tabla {tablaBuscar} no existe la columna {registro.ValoresNuevos[i].NombreColumna}");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        gestion.setError("Error: El nombre de la Columna " + registro.ValoresNuevos[i].NombreColumna + " no es válido");
+                                    }
+                                }
+                                else
+                                {
+                                    gestion.setError($"Error: En la tabla {tablaBuscar} no existe la columna {registro.ValoresExistentes[i].NombreColumna}");
+                                }
+                            }
+                            else
+                            {
+                                gestion.setError("Error: El nombre de la Columna " + registro.ValoresExistentes[i].NombreColumna + " no es válido");
+                            }
+                        }
 
-
-
+                    }
+                    else
+                    {
+                        gestion.setError($"Error: No existe la tabla {tablaBuscar}");
+                    }
+                }
+                else
+                {
+                    gestion.setError("Error: El nombre de la tabla " + tablaBuscar + " no es válido");
+                }
             }
             catch (Exception ex)
             {

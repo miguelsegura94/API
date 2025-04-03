@@ -41,11 +41,15 @@ namespace BBDD.Modelos
         public string Columna { get; set; }
         public string Valor { get; set; }
     }
-    public class RegistroBuscar
+    public class ColumnaBasica
     {
-        public string Tabla { get; set; }
-        public string Columna { get; set; }
-        public string Valor { get; set; }
+        public string NombreColumna { get; set; }
+        public string ValorRegistro { get; set; }
+    }
+    public class RegistroEditar
+    {
+        public List<ColumnaBasica> ValoresExistentes { get; set; }
+        public List<ColumnaBasica> ValoresNuevos { get; set; }
     }
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum TipoDato

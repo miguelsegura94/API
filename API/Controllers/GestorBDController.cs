@@ -195,6 +195,34 @@ namespace API.Controllers
             return BadRequest(gestion);
         }
         /// <summary>
+        /// Hace una llamada a la base de datos para editar uno o varios registros de una tabla
+        /// </summary>
+        /// <param name="tabla">Tabla donde se editan los registros</param>
+        /// <param name="registro">Cuerpo que se rellena con los datos para editar y los nuevos valores</param>
+        /// <returns>Devuelve el mensaje correspondiente ya sea correcto o incorrecto diciendo en lo que ha fallado</returns>
+        [HttpPut("EditarUnoOVariosRegistros/{tabla}")]
+        public IActionResult EditarUnoOVariosRegistrosEnTabla(string tabla, [FromBody] RegistroEditar registro)
+        {
+            Gestion gestion = new Gestion();
+            try
+            {
+                gestion = servicioBD.EditarUnoOVariosRegistrosEnTablaServicio(tabla, registro);
+                if (gestion.isCorrect())
+                {
+                    return Ok(gestion);
+                }
+                else
+                {
+                    return NotFound(gestion);
+                }
+            }
+            catch (Exception ex)
+            {
+                gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message });
+            }
+            return BadRequest(gestion);
+        }
+        /// <summary>
         /// Hace una llamada a la base de datos y elimina el registro especifico de la tabla
         /// </summary>
         /// <param name="tabla">Nombre de la tabla de la que eliminar el registro</param>
