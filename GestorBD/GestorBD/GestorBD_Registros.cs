@@ -27,40 +27,32 @@ namespace GestorBaseDatos.GestorBD.GestorBD
             Gestion gestion = new Gestion();
             try
             {
-                if (EsNombreValido(tablaBuscar))
+                if (!ExisteTabla(tablaBuscar, connectionString))
                 {
-                    using (SqlConnection connection = new SqlConnection(connectionString))
-                    {
-                        connection.Open();
-
-                        if (ExisteTabla(tablaBuscar, connectionString))
-                        {
-
-                            string query = $"SELECT * FROM [{tablaBuscar}]";
-                            SqlCommand command = new SqlCommand(query, connection);
-                            SqlDataReader reader = command.ExecuteReader();
-                            gestion.data = new List<dynamic>();
-                            while (reader.Read())
-                            {
-                                Dictionary<string, dynamic> generico = new Dictionary<string, dynamic>();
-
-                                for (int i = 0; i < reader.FieldCount; i++)
-                                {
-                                    generico[reader.GetName(i)] = reader.GetValue(i);
-                                }
-
-                                gestion.data.Add(generico);
-                            }
-                        }
-                        else
-                        {
-                            gestion.setError($"No existe la tabla {tablaBuscar}");
-                        }
-                    }
+                    gestion.setError($"No existe la tabla {tablaBuscar}");
+                    return gestion;
                 }
-                else
+                using (SqlConnection connection = new SqlConnection(connectionString))
                 {
-                    gestion.setError("Error: El nombre de la tabla " + tablaBuscar + " no es válido");
+                    connection.Open();
+
+
+
+                    string query = $"SELECT * FROM [{tablaBuscar}]";
+                    SqlCommand command = new SqlCommand(query, connection);
+                    SqlDataReader reader = command.ExecuteReader();
+                    gestion.data = new List<dynamic>();
+                    while (reader.Read())
+                    {
+                        Dictionary<string, dynamic> generico = new Dictionary<string, dynamic>();
+
+                        for (int i = 0; i < reader.FieldCount; i++)
+                        {
+                            generico[reader.GetName(i)] = reader.GetValue(i);
+                        }
+
+                        gestion.data.Add(generico);
+                    }
                 }
             }
             catch (Exception ex)
@@ -82,60 +74,44 @@ namespace GestorBaseDatos.GestorBD.GestorBD
             Gestion gestion = new Gestion();
             try
             {
-                if (EsNombreValido(tabla))
+
+                if (!ExisteTabla(tabla, connectionString))
                 {
-                    if (ExisteTabla(tabla, connectionString))
-                    {
-                        if (EsNombreValido(columna))
-                        {
-                            if (ExisteColumna(tabla, columna, connectionString))
-                            {
-                                using (SqlConnection connection = new SqlConnection(connectionString))
-                                {
-                                    connection.Open();
-                                    string query = $"SELECT * FROM [{tabla}] WHERE {columna}=@Valor";
-                                    SqlCommand command = new SqlCommand(query, connection);
-                                    command.Parameters.AddWithValue("@Valor", valor);
-                                    SqlDataReader reader = command.ExecuteReader();
-                                    gestion.data = new List<dynamic>();
-                                    while (reader.Read())
-                                    {
-                                        Dictionary<string, dynamic> generico = new Dictionary<string, dynamic>();
-
-                                        for (int i = 0; i < reader.FieldCount; i++)
-                                        {
-                                            generico[reader.GetName(i)] = reader.GetValue(i);
-                                        }
-                                        gestion.data.Add(generico);
-                                        gestion.Correct();
-                                    }
-                                }
-
-
-                            }
-                            else
-                            {
-                                gestion.setError($"Error: En la tabla {tabla} no existe la columna {columna}");
-                            }
-                        }
-                        else
-                        {
-                            gestion.setError("Error: El nombre de la Columna " + columna + " no es válido");
-                        }
-                    }
-                    else
-                    {
-                        gestion.setError($"Error: No existe la tabla {tabla}");
-                    }
+                    gestion.setError($"Error: No existe la tabla {tabla}");
+                    return gestion;
                 }
-                else
+                if (!ExisteColumna(tabla, columna, connectionString))
                 {
-                    gestion.setError("Error: El nombre de la tabla " + tabla + " no es válido");
+
+                    gestion.setError($"Error: En la tabla {tabla} no existe la columna {columna}");
+                    return gestion;
+
+                }
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    string query = $"SELECT * FROM [{tabla}] WHERE {columna}=@Valor";
+                    SqlCommand command = new SqlCommand(query, connection);
+                    command.Parameters.AddWithValue("@Valor", valor);
+                    SqlDataReader reader = command.ExecuteReader();
+                    gestion.data = new List<dynamic>();
+                    while (reader.Read())
+                    {
+                        Dictionary<string, dynamic> generico = new Dictionary<string, dynamic>();
+
+                        for (int i = 0; i < reader.FieldCount; i++)
+                        {
+                            generico[reader.GetName(i)] = reader.GetValue(i);
+                        }
+                        gestion.data.Add(generico);
+                        gestion.Correct();
+                    }
                 }
             }
             catch (Exception ex)
             {
-                gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message });
+                gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message
+    });
             }
             return gestion;
         }
@@ -151,64 +127,54 @@ namespace GestorBaseDatos.GestorBD.GestorBD
             try
             {
 
-                if (EsNombreValido(tablaBuscar))
+                if (!ExisteTabla(tablaBuscar, connectionString))
                 {
-                    using (SqlConnection connection = new SqlConnection(connectionString))
-                    {
-                        connection.Open();
+                    gestion.setError($"Error: No existe la tabla {tablaBuscar}");
+                    return gestion;
+                }
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
 
-                        if (ExisteTabla(tablaBuscar, connectionString))
-                        {
-                            string query = @"
+
+                    string query = @"
                 SELECT COLUMN_NAME, DATA_TYPE 
                 FROM INFORMATION_SCHEMA.COLUMNS 
                 WHERE TABLE_NAME = @tableName AND COLUMNPROPERTY(object_id(TABLE_NAME), COLUMN_NAME, 'IsIdentity') = 0";
 
-                            Dictionary<string, object> jsonDict = new Dictionary<string, object>();
+                    Dictionary<string, object> jsonDict = new Dictionary<string, object>();
 
-                            using (SqlCommand command = new SqlCommand(query, connection))
-                            {
-                                command.Parameters.AddWithValue("@tableName", tablaBuscar);
-                                using (SqlDataReader reader = command.ExecuteReader())
-                                {
-                                    while (reader.Read())
-                                    {
-                                        string columnName = reader.GetString(0);
-                                        string dataType = reader.GetString(1);
-
-                                        object ejemploValor = dataType switch
-                                        {
-                                            "int" => 0,
-                                            "bigint" => 0,
-                                            "decimal" => 0.0,
-                                            "float" => 0.0,
-                                            "bit" => false,
-                                            "nvarchar" => "",
-                                            "varchar" => "",
-                                            "text" => "",
-                                            "date" => "2024-01-01",
-                                            "datetime" => "2024-01-01T00:00:00",
-                                            _ => null
-                                        };
-
-                                        jsonDict[columnName] = ejemploValor;
-                                    }
-                                }
-                            }
-                            gestion.data = jsonDict;
-                            gestion.Correct($"Aqui tienes el json para entrada de datos en tabla {tablaBuscar}");
-                            Console.WriteLine(gestion.data);
-
-                        }
-                        else
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("@tableName", tablaBuscar);
+                        using (SqlDataReader reader = command.ExecuteReader())
                         {
-                            gestion.setError($"Error: No existe la tabla {tablaBuscar}");
+                            while (reader.Read())
+                            {
+                                string columnName = reader.GetString(0);
+                                string dataType = reader.GetString(1);
+
+                                object ejemploValor = dataType switch
+                                {
+                                    "int" => 0,
+                                    "bigint" => 0,
+                                    "decimal" => 0.0,
+                                    "float" => 0.0,
+                                    "bit" => false,
+                                    "nvarchar" => "",
+                                    "varchar" => "",
+                                    "text" => "",
+                                    "date" => "2024-01-01",
+                                    "datetime" => "2024-01-01T00:00:00",
+                                    _ => null
+                                };
+
+                                jsonDict[columnName] = ejemploValor;
+                            }
                         }
                     }
-                }
-                else
-                {
-                    gestion.setError("Error: El nombre de la tabla " + tablaBuscar + " no es válido");
+                    gestion.data = jsonDict;
+                    gestion.Correct($"Aqui tienes el json para entrada de datos en tabla {tablaBuscar}");
                 }
             }
             catch (Exception ex)
@@ -229,70 +195,64 @@ namespace GestorBaseDatos.GestorBD.GestorBD
             Gestion gestion = new Gestion();
             try
             {
-                using (SqlConnection connection = new SqlConnection(connectionString))
+                if (ExisteTabla(tablaBuscar, connectionString))
                 {
-                    if (EsNombreValido(tablaBuscar))
+                    using (SqlConnection connection = new SqlConnection(connectionString))
                     {
+
                         //TODO VALIDAR QUE EL TIPO DE DATO QUE RECIBO ES EL QUE TIENE EL ATRIBUTO
-                        if (ExisteTabla(tablaBuscar, connectionString))
-                        {
-                            connection.Open();
-                            string columnasQuery = @"
+
+                        connection.Open();
+                        string columnasQuery = @"
                 SELECT COLUMN_NAME, COLUMNPROPERTY(object_id(TABLE_NAME), COLUMN_NAME, 'IsIdentity') AS IsIdentity 
                 FROM INFORMATION_SCHEMA.COLUMNS 
                 WHERE TABLE_NAME = @tablaName";
 
-                            List<string> columnas = new List<string>();
+                        List<string> columnas = new List<string>();
 
-                            using (SqlCommand command = new SqlCommand(columnasQuery, connection))
+                        using (SqlCommand command = new SqlCommand(columnasQuery, connection))
+                        {
+                            command.Parameters.AddWithValue("@tablaName", tablaBuscar);
+                            using (SqlDataReader reader = command.ExecuteReader())
                             {
-                                command.Parameters.AddWithValue("@tablaName", tablaBuscar);
-                                using (SqlDataReader reader = command.ExecuteReader())
+                                while (reader.Read())
                                 {
-                                    while (reader.Read())
+                                    string columna = reader.GetString(0);
+                                    bool isIdentity = reader.GetInt32(1) == 1;
+                                    if (!isIdentity)
                                     {
-                                        string columna = reader.GetString(0);
-                                        bool isIdentity = reader.GetInt32(1) == 1;
-                                        if (!isIdentity)
-                                        {
-                                            columnas.Add(columna);
-                                        }
+                                        columnas.Add(columna);
                                     }
                                 }
                             }
-
-                            if (datosAñadir.Count != columnas.Count)
-                            {
-                                gestion.setError("Error: La cantidad de valores no coincide con la cantidad de columnas (excluyendo IDENTITY).");
-                                return gestion;
-                            }
-
-                            string columnasString = string.Join(", ", columnas);
-                            string valoresString = string.Join(", ", columnas.Select(c => $"@{c}"));
-
-                            string insertQuery = $"INSERT INTO {tablaBuscar} ({columnasString}) VALUES ({valoresString})";
-
-                            using (SqlCommand command = new SqlCommand(insertQuery, connection))
-                            {
-                                foreach (var kvp in datosAñadir)
-                                {
-                                    command.Parameters.AddWithValue($"@{kvp.Key}", kvp.Value ?? DBNull.Value);
-                                }
-
-                                command.ExecuteNonQuery();
-                                gestion.Correct("Datos insertados correctamente.");
-                            }
                         }
-                        else
+                        if (datosAñadir.Count != columnas.Count)
                         {
-                            gestion.setError($"Error: No existe la tabla {tablaBuscar}");
+                            gestion.setError("Error: La cantidad de valores no coincide con la cantidad de columnas (excluyendo IDENTITY).");
+                            return gestion;
                         }
-                    }
-                    else
-                    {
-                        gestion.setError("Error: El nombre de la tabla " + tablaBuscar + " no es válido");
+                        string columnasString = string.Join(", ", columnas);
+                        string valoresString = string.Join(", ", columnas.Select(c => $"@{c}"));
+
+                        string insertQuery = $"INSERT INTO {tablaBuscar} ({columnasString}) VALUES ({valoresString})";
+
+                        using (SqlCommand command = new SqlCommand(insertQuery, connection))
+                        {
+                            foreach (var kvp in datosAñadir)
+                            {
+                                command.Parameters.AddWithValue($"@{kvp.Key}", kvp.Value ?? DBNull.Value);
+                            }
+
+                            command.ExecuteNonQuery();
+                            gestion.Correct("Datos insertados correctamente.");
+                        }
                     }
                 }
+                else
+                {
+                    gestion.setError($"Error: No existe la tabla {tablaBuscar}");
+                }
+                
             }
             catch (Exception ex)
             {
@@ -312,51 +272,39 @@ namespace GestorBaseDatos.GestorBD.GestorBD
             Gestion gestion = new Gestion();
             try
             {
-                if (EsNombreValido(tablaBuscar))
+
+                if (!ExisteTabla(tablaBuscar, connectionString))
                 {
-                    if (ExisteTabla(tablaBuscar, connectionString))
+                    gestion.setError($"Error: No existe la tabla {tablaBuscar}");
+                    return gestion;
+                }
+                if (!ExisteColumna(tablaBuscar, registro.Columna, connectionString))
+                {
+                    gestion.setError($"Error: En la tabla {tablaBuscar} no existe la columna {registro.Columna}");
+                    return gestion;
+                }
+                if (!TipoDatoCorrecto(tablaBuscar, registro.Columna, registro.Valor, connectionString))
+                {
+                    gestion.setError($"Error: El tipo de dato no concide con la columna {registro.Columna}");
+                    return gestion;
+                }
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    string query = $"DELETE FROM {tablaBuscar} WHERE {registro.Columna} = @Valor";
+                    using (SqlCommand command = new SqlCommand(query, connection))
                     {
-                        if (EsNombreValido(registro.Columna))
+                        command.Parameters.AddWithValue("@Valor", registro.Valor);
+                        int borrado = command.ExecuteNonQuery();
+                        if (borrado > 0)
                         {
-                            if (ExisteColumna(tablaBuscar, registro.Columna, connectionString))
-                            {
-                                using (SqlConnection connection = new SqlConnection(connectionString))
-                                {
-                                    connection.Open();
-                                    string query = $"DELETE FROM {tablaBuscar} WHERE {registro.Columna} = @Valor";
-                                    using (SqlCommand command = new SqlCommand(query, connection))
-                                    {
-                                        command.Parameters.AddWithValue("@Valor", registro.Valor);
-                                        int borrado = command.ExecuteNonQuery();
-                                        if (borrado > 0)
-                                        {
-                                            gestion.Correct("Registro eliminado correctamente.");
-                                        }
-                                        else
-                                        {
-                                            gestion.setError($"Error: No existe el registro {registro.Valor} en la columna {registro.Columna}");
-                                        }
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                gestion.setError($"Error: En la tabla {tablaBuscar} no existe la columna {registro.Columna}");
-                            }
+                            gestion.Correct("Registro eliminado correctamente.");
                         }
                         else
                         {
-                            gestion.setError("Error: El nombre de la Columna " + registro.Columna + " no es válido");
+                            gestion.setError($"Error: No existe el registro {registro.Valor} en la columna {registro.Columna}");
                         }
                     }
-                    else
-                    {
-                        gestion.setError($"Error: No existe la tabla {tablaBuscar}");
-                    }
-                }
-                else
-                {
-                    gestion.setError("Error: El nombre de la tabla " + tablaBuscar + " no es válido");
                 }
             }
             catch (Exception ex)
@@ -377,44 +325,34 @@ namespace GestorBaseDatos.GestorBD.GestorBD
             Gestion gestion = new Gestion();
             try
             {
-                if (!EsNombreValido(tablaBuscar))
-                {
-                    gestion.setError("Error: El nombre de la tabla " + tablaBuscar + " no es válido");
-                    return gestion;
-                }
 
                 if (!ExisteTabla(tablaBuscar, connectionString))
                 {
                     gestion.setError($"Error: No existe la tabla {tablaBuscar}");
                     return gestion;
                 }
-
                 for (int i = 0; i < registro.ValoresExistentes.Count; i++)
                 {
-                    if (!EsNombreValido(registro.ValoresExistentes[i].NombreColumna))
-                    {
-                        gestion.setError("Error: El nombre de la Columna " + registro.ValoresExistentes[i].NombreColumna + " no es válido");
-                        return gestion;
-                    }
-
                     if (!ExisteColumna(tablaBuscar, registro.ValoresExistentes[i].NombreColumna, connectionString))
                     {
                         gestion.setError($"Error: En la tabla {tablaBuscar} no existe la columna {registro.ValoresExistentes[i].NombreColumna}");
                         return gestion;
                     }
-
-                    if (!EsNombreValido(registro.ValoresNuevos[i].NombreColumna))
+                    if (!TipoDatoCorrecto(tablaBuscar, registro.ValoresExistentes[i].NombreColumna, registro.ValoresExistentes[i].ValorRegistro, connectionString))
                     {
-                        gestion.setError("Error: El nombre de la Columna " + registro.ValoresNuevos[i].NombreColumna + " no es válido");
+                        gestion.setError($"Error: El tipo de dato no concide con la columna {registro.ValoresExistentes[i].NombreColumna}");
                         return gestion;
                     }
-
                     if (!ExisteColumna(tablaBuscar, registro.ValoresNuevos[i].NombreColumna, connectionString))
                     {
                         gestion.setError($"Error: En la tabla {tablaBuscar} no existe la columna {registro.ValoresNuevos[i].NombreColumna}");
                         return gestion;
                     }
-
+                    if (!TipoDatoCorrecto(tablaBuscar, registro.ValoresNuevos[i].NombreColumna, registro.ValoresNuevos[i].ValorRegistro, connectionString))
+                    {
+                        gestion.setError($"Error: El tipo de dato no concide con la columna {registro.ValoresNuevos[i].NombreColumna}");
+                        return gestion;
+                    }
                     if (!ExisteValor(tablaBuscar, registro.ValoresExistentes[i].NombreColumna, registro.ValoresExistentes[i].ValorRegistro, connectionString))
                     {
                         gestion.setError($"Error: No existe el registro {registro.ValoresExistentes[i].ValorRegistro} en la columna {registro.ValoresExistentes[i].NombreColumna}");
@@ -459,49 +397,39 @@ namespace GestorBaseDatos.GestorBD.GestorBD
             Gestion gestion = new Gestion();
             try
             {
-                if (!EsNombreValido(tablaBuscar))
-                {
-                    gestion.setError("Error: El nombre de la tabla " + tablaBuscar + " no es válido");
-                    return gestion;
-                }
-
                 if (!ExisteTabla(tablaBuscar, connectionString))
                 {
                     gestion.setError($"Error: No existe la tabla {tablaBuscar}");
                     return gestion;
                 }
-
                 for (int i = 0; i < registro.Condiciones.Count; i++)
                 {
-                    if (!EsNombreValido(registro.Condiciones[i].NombreColumna))
-                    {
-                        gestion.setError("Error: El nombre de la Columna " + registro.Condiciones[i].NombreColumna + " no es válido");
-                        return gestion;
-                    }
-
                     if (!ExisteColumna(tablaBuscar, registro.Condiciones[i].NombreColumna, connectionString))
                     {
                         gestion.setError($"Error: En la tabla {tablaBuscar} no existe la columna {registro.Condiciones[i].NombreColumna}");
                         return gestion;
                     }
-
-                    if (!EsNombreValido(registro.ValoresNuevos.NombreColumna))
+                    if (!TipoDatoCorrecto(tablaBuscar, registro.Condiciones[i].NombreColumna, registro.Condiciones[i].ValorRegistro, connectionString))
                     {
-                        gestion.setError("Error: El nombre de la Columna " + registro.ValoresNuevos.NombreColumna + " no es válido");
+                        gestion.setError($"Error: El tipo de dato no concide con la columna {registro.Condiciones[i].NombreColumna}");
                         return gestion;
                     }
-
                     if (!ExisteColumna(tablaBuscar, registro.ValoresNuevos.NombreColumna, connectionString))
                     {
                         gestion.setError($"Error: En la tabla {tablaBuscar} no existe la columna {registro.ValoresNuevos.NombreColumna}");
                         return gestion;
                     }
-
+                    if (!TipoDatoCorrecto(tablaBuscar, registro.ValoresNuevos.NombreColumna, registro.ValoresNuevos.ValorRegistro, connectionString))
+                    {
+                        gestion.setError($"Error: El tipo de dato no concide con la columna {registro.ValoresNuevos.NombreColumna}");
+                        return gestion;
+                    }
                     if (!ExisteValor(tablaBuscar, registro.Condiciones[i].NombreColumna, registro.Condiciones[i].ValorRegistro, connectionString))
                     {
                         gestion.setError($"Error: No existe el registro {registro.Condiciones[i].ValorRegistro} en la columna {registro.Condiciones[i].NombreColumna}");
                         return gestion;
                     }
+
                 }
                 for (int i = 0; i < registro.Condiciones.Count; i++)
                 {
@@ -513,8 +441,8 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                         {
                             command.Parameters.AddWithValue("@Valor", registro.Condiciones[i].ValorRegistro);
                             command.Parameters.AddWithValue("@NuevoValor", registro.ValoresNuevos.ValorRegistro);
-                            int borrado = command.ExecuteNonQuery();
-                            if (borrado > 0)
+                            int editado = command.ExecuteNonQuery();
+                            if (editado > 0)
                             {
                                 gestion.Correct("Registro editado correctamente.");
                             }

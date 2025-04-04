@@ -58,8 +58,9 @@ namespace BBDD.Modelos
     }
     public class RegistroMultipleEditar
     {
-        public ColumnaBasica ValoresNuevos { get; set; }
         public List<Condicion> Condiciones { get; set; }
+        public ColumnaBasica ValoresNuevos { get; set; }
+        
 
     }
     [JsonConverter(typeof(JsonStringEnumConverter))]

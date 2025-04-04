@@ -1,10 +1,13 @@
-﻿using System.Data;
+﻿using System;
+using System.Data;
+using System.Drawing;
 using System.Security.Principal;
 using System.Text;
 using BBDD.Modelos;
 using GestorBaseDatos.GestionCarpeta;
 using Microsoft.Data.SqlClient;
 using Microsoft.IdentityModel.Tokens;
+using static System.Collections.Specialized.BitVector32;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace GestorBaseDatos.GestorBD.GestorBD
@@ -133,16 +136,20 @@ namespace GestorBaseDatos.GestorBD.GestorBD
             }
             return gestion;
         }
-        
+
 
         /// <summary>
-        /// Comprueba que la tabla especificada existe
+        /// Comprueba que la tabla especificada existe y tambien evita inyeccion SQL
         /// </summary>
         /// <param name="tabla">Nombre de la tabla que quieres comprobar que existe</param>
         /// <param name="connectionString">La cadena de conexion a la base de datos</param>
         /// <returns>Devuelve true si existe la tabla, de lo contrario, false</returns>
         public bool ExisteTabla(string tabla, string connectionString)
         {
+            if (!EsNombreValido(tabla))
+            {
+                return false;
+            }
             bool existe = false;
 
             using (SqlConnection connection = new SqlConnection(connectionString))
@@ -164,7 +171,7 @@ namespace GestorBaseDatos.GestorBD.GestorBD
             return existe;
         }
         /// <summary>
-        /// Comprueba que la columna especificada existe dentro de la tabla especificada
+        /// Comprueba que la columna especificada existe dentro de la tabla especificada y tambien evita inyeccion SQL
         /// </summary>
         /// <param name="tabla">Nombre de la tabla en la que buscar la columna</param>
         /// <param name="columna">Nombre de la columna a buscar</param>
@@ -172,6 +179,10 @@ namespace GestorBaseDatos.GestorBD.GestorBD
         /// <returns>Devuelve true si existe la columna, de lo contrario, false</returns>
         public bool ExisteColumna(string tabla, string columna, string connectionString)
         {
+            if (!EsNombreValido(columna))
+            {
+                return false;
+            }
             bool existe = false;
 
             using (SqlConnection connection = new SqlConnection(connectionString))
@@ -192,25 +203,97 @@ namespace GestorBaseDatos.GestorBD.GestorBD
             }
             return existe;
         }
-        public bool ExisteValor(string tabla, string columna,string valor, string connectionString)
+        public bool ExisteValor(string tabla, string columna, string valor, string connectionString)
         {
             bool existe = false;
-                using (SqlConnection connection = new SqlConnection(connectionString))
-                {
-                    connection.Open();
-                    string query = $"SELECT COUNT(*) FROM {tabla} WHERE {columna} = @valor";
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+                string query = $"SELECT COUNT(*) FROM {tabla} WHERE {columna} = @valor";
 
-                    using (SqlCommand command = new SqlCommand(query, connection))
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@valor", valor);
+                    int count = (int)command.ExecuteScalar();
+                    if (count > 0)
                     {
-                        command.Parameters.AddWithValue("@valor", valor);
-                        int count = (int)command.ExecuteScalar();
-                        if (count > 0)
-                        {
-                            existe = true;
-                        }
+                        existe = true;
                     }
                 }
+            }
             return existe;
+        }
+        /// <summary>
+        /// Comprueba que el tipo de dato sea correcto en esa columna
+        /// </summary>
+        /// <param name="tabla">Tabla en la que buscar la columna</param>
+        /// <param name="columna">Columna donde buscar si el tipo de dato coincide</param>
+        /// <param name="valorComprobar">Valor que comprobar que el tipo de dato coincide con el de la columna en la base de datos</param>
+        /// <param name="connectionString">La cadena de conexion a la base de datos</param>
+        /// <returns>Devuelve true si el tipo de dato del valor a añadir coincide con el tipo de dato de la columna, de lo contrario devuelve false</returns>
+        public bool TipoDatoCorrecto(string tabla, string columna, string valorComprobar, string connectionString)
+        {
+            bool tipoDatoCorrecto = false;
+
+            if (string.IsNullOrEmpty(valorComprobar))
+                return tipoDatoCorrecto; 
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+                string query = $"SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = @tabla AND COLUMN_NAME = @columna";
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@tabla", tabla);
+                    command.Parameters.AddWithValue("@columna", columna);
+                    object result = command.ExecuteScalar();
+                    if (result != null)
+                    {
+                        string tipoDatoSQL = result.ToString().ToLower();
+
+                        tipoDatoCorrecto = ValidarTipoDato(tipoDatoSQL, valorComprobar);
+                    }
+                }
+            }
+            return tipoDatoCorrecto;
+        }
+        private bool ValidarTipoDato(string tipoDatoSQL, string valorComprobar)
+        {
+            switch (tipoDatoSQL)
+            {
+                case "int":
+                case "bigint":
+                case "smallint":
+                case "tinyint":
+                    return int.TryParse(valorComprobar, out _);
+
+                case "decimal":
+                case "numeric":
+                case "float":
+                case "real":
+                    return double.TryParse(valorComprobar, out _);
+
+                case "bit":
+                    return valorComprobar == "0" || valorComprobar == "1";
+
+                case "date":
+                case "datetime":
+                case "smalldatetime":
+                case "datetime2":
+                    return DateTime.TryParse(valorComprobar, out _);
+
+                case "char":
+                case "varchar":
+                case "text":
+                case "nvarchar":
+                case "nchar":
+                case "ntext":
+                    return true;
+
+                default:
+                    return false;
+            }
         }
         /// <summary>
         /// Valida que el nombre no contenga caracteres especiales para evitar la inyeccion SQL
