@@ -55,6 +55,12 @@ namespace BBDD.Servicios
             gestion = _gestorBD.EditarUnoOVariosRegistrosEnTablaGestor(tablaBuscar, registro, _connectionString);
             return gestion;
         }
+        public Gestion EditarTodosRegistrosQueCumplenVariasCondicionesEnTablaServicio(string tablaBuscar, RegistroMultipleEditar registro)
+        {
+            Gestion gestion = new Gestion();
+            gestion = _gestorBD.EditarTodosRegistrosQueCumplenVariasCondicionesEnTablaGestor(tablaBuscar, registro, _connectionString);
+            return gestion;
+        }
         public Gestion EliminarRegistroEnTablaServicio(string tabla, RegistroDelete registro)
         {
             Gestion gestion = new Gestion();

@@ -223,6 +223,34 @@ namespace API.Controllers
             return BadRequest(gestion);
         }
         /// <summary>
+        /// Hace una llamada a la base de datos y edita todos los registros que cumplen las condiciones
+        /// </summary>
+        /// <param name="tabla">Tabla donde se van a editar los registros</param>
+        /// <param name="registro">Datos de los nuevos registros,columna y nuevo valor, y condiciones que se tiene que cumplir,lista con nombre de columna y valor actual</param>
+        /// <returns>Devuelve el mensaje de correcto si ha podido, o el mensaje de error correspondiente si ha fallado</returns>
+        [HttpPut("EditarTodosRegistrosQueCumplenVariasCondiciones/{tabla}")]
+        public IActionResult EditarTodosRegistrosQueCumplenVariasCondicionesEnTabla(string tabla, [FromBody] RegistroMultipleEditar registro)
+        {
+            Gestion gestion = new Gestion();
+            try
+            {
+                gestion = servicioBD.EditarTodosRegistrosQueCumplenVariasCondicionesEnTablaServicio(tabla, registro);
+                if (gestion.isCorrect())
+                {
+                    return Ok(gestion);
+                }
+                else
+                {
+                    return NotFound(gestion);
+                }
+            }
+            catch (Exception ex)
+            {
+                gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message });
+            }
+            return BadRequest(gestion);
+        }
+        /// <summary>
         /// Hace una llamada a la base de datos y elimina el registro especifico de la tabla
         /// </summary>
         /// <param name="tabla">Nombre de la tabla de la que eliminar el registro</param>

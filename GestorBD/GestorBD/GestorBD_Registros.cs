@@ -377,76 +377,152 @@ namespace GestorBaseDatos.GestorBD.GestorBD
             Gestion gestion = new Gestion();
             try
             {
-                if (EsNombreValido(tablaBuscar))
-                {
-                    if (ExisteTabla(tablaBuscar, connectionString))
-                    {
-                        for (int i = 0; i < registro.ValoresExistentes.Count; i++)
-                        {
-                            if (EsNombreValido(registro.ValoresExistentes[i].NombreColumna))
-                            {
-                                if (ExisteColumna(tablaBuscar, registro.ValoresExistentes[i].NombreColumna, connectionString))
-                                {
-                                    if (EsNombreValido(registro.ValoresNuevos[i].NombreColumna))
-                                    {
-                                        if (ExisteColumna(tablaBuscar, registro.ValoresNuevos[i].NombreColumna, connectionString))
-                                        {
-                                            if (ExisteValor(tablaBuscar, registro.ValoresExistentes[i].NombreColumna, registro.ValoresExistentes[i].ValorRegistro, connectionString))
-                                            {
-                                                using (SqlConnection connection = new SqlConnection(connectionString))
-                                                {
-                                                    connection.Open();
-                                                    string query = $"UPDATE {tablaBuscar} SET {registro.ValoresNuevos[i].NombreColumna} = @NuevoValor WHERE {registro.ValoresExistentes[i].NombreColumna} = @Valor";
-                                                    using (SqlCommand command = new SqlCommand(query, connection))
-                                                    {
-                                                        command.Parameters.AddWithValue("@Valor", registro.ValoresExistentes[i].ValorRegistro);
-                                                        command.Parameters.AddWithValue("@NuevoValor", registro.ValoresNuevos[i].ValorRegistro);
-                                                        int borrado = command.ExecuteNonQuery();
-                                                        if (borrado > 0)
-                                                        {
-                                                            gestion.Correct("Registro editado correctamente.");
-                                                        }
-                                                    }
-
-                                                }
-                                            }
-                                            else
-                                            {
-                                                gestion.setError($"Error: No existe el registro {registro.ValoresExistentes[i].ValorRegistro} en la columna {registro.ValoresExistentes[i].NombreColumna}");
-                                            }
-                                        }
-                                        else
-                                        {
-                                            gestion.setError($"Error: En la tabla {tablaBuscar} no existe la columna {registro.ValoresNuevos[i].NombreColumna}");
-                                        }
-                                    }
-                                    else
-                                    {
-                                        gestion.setError("Error: El nombre de la Columna " + registro.ValoresNuevos[i].NombreColumna + " no es válido");
-                                    }
-                                }
-                                else
-                                {
-                                    gestion.setError($"Error: En la tabla {tablaBuscar} no existe la columna {registro.ValoresExistentes[i].NombreColumna}");
-                                }
-                            }
-                            else
-                            {
-                                gestion.setError("Error: El nombre de la Columna " + registro.ValoresExistentes[i].NombreColumna + " no es válido");
-                            }
-                        }
-
-                    }
-                    else
-                    {
-                        gestion.setError($"Error: No existe la tabla {tablaBuscar}");
-                    }
-                }
-                else
+                if (!EsNombreValido(tablaBuscar))
                 {
                     gestion.setError("Error: El nombre de la tabla " + tablaBuscar + " no es válido");
+                    return gestion;
+                }
+
+                if (!ExisteTabla(tablaBuscar, connectionString))
+                {
+                    gestion.setError($"Error: No existe la tabla {tablaBuscar}");
+                    return gestion;
+                }
+
+                for (int i = 0; i < registro.ValoresExistentes.Count; i++)
+                {
+                    if (!EsNombreValido(registro.ValoresExistentes[i].NombreColumna))
+                    {
+                        gestion.setError("Error: El nombre de la Columna " + registro.ValoresExistentes[i].NombreColumna + " no es válido");
+                        return gestion;
+                    }
+
+                    if (!ExisteColumna(tablaBuscar, registro.ValoresExistentes[i].NombreColumna, connectionString))
+                    {
+                        gestion.setError($"Error: En la tabla {tablaBuscar} no existe la columna {registro.ValoresExistentes[i].NombreColumna}");
+                        return gestion;
+                    }
+
+                    if (!EsNombreValido(registro.ValoresNuevos[i].NombreColumna))
+                    {
+                        gestion.setError("Error: El nombre de la Columna " + registro.ValoresNuevos[i].NombreColumna + " no es válido");
+                        return gestion;
+                    }
+
+                    if (!ExisteColumna(tablaBuscar, registro.ValoresNuevos[i].NombreColumna, connectionString))
+                    {
+                        gestion.setError($"Error: En la tabla {tablaBuscar} no existe la columna {registro.ValoresNuevos[i].NombreColumna}");
+                        return gestion;
+                    }
+
+                    if (!ExisteValor(tablaBuscar, registro.ValoresExistentes[i].NombreColumna, registro.ValoresExistentes[i].ValorRegistro, connectionString))
+                    {
+                        gestion.setError($"Error: No existe el registro {registro.ValoresExistentes[i].ValorRegistro} en la columna {registro.ValoresExistentes[i].NombreColumna}");
+                        return gestion;
+                    }
+                }
+                for (int i = 0; i < registro.ValoresExistentes.Count; i++)
+                {
+                    using (SqlConnection connection = new SqlConnection(connectionString))
+                    {
+                        connection.Open();
+                        string query = $"UPDATE {tablaBuscar} SET {registro.ValoresNuevos[i].NombreColumna} = @NuevoValor WHERE {registro.ValoresExistentes[i].NombreColumna} = @Valor";
+                        using (SqlCommand command = new SqlCommand(query, connection))
+                        {
+                            command.Parameters.AddWithValue("@Valor", registro.ValoresExistentes[i].ValorRegistro);
+                            command.Parameters.AddWithValue("@NuevoValor", registro.ValoresNuevos[i].ValorRegistro);
+                            int borrado = command.ExecuteNonQuery();
+                            if (borrado > 0)
+                            {
+                                gestion.Correct("Registro editado correctamente.");
+                            }
+                        }
+                    }
                 }
             }
+
+            catch (Exception ex)
+            {
+                gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message });
+            }
+            return gestion;
+        }
+        /// <summary>
+        /// Edita varios registros a la vez en los que se cumpla la misma condicion
+        /// </summary>
+        /// <param name="tablaBuscar">Tabla en la que se editan los registros</param>
+        /// <param name="registro">Datos de los nuevos registros,columna y nuevo valor, y condiciones que se tiene que cumplir,lista con nombre de columna y valor actual</param>
+        /// <param name="connectionString">La cadena de conexion a la base de datos</param>
+        /// <returns>Devuelve el mensaje de correcto si ha podido, o el mensaje de error correspondiente si ha fallado</returns>
+        public Gestion EditarTodosRegistrosQueCumplenVariasCondicionesEnTablaGestor(string tablaBuscar, RegistroMultipleEditar registro, string connectionString)
+        {
+            Gestion gestion = new Gestion();
+            try
+            {
+                if (!EsNombreValido(tablaBuscar))
+                {
+                    gestion.setError("Error: El nombre de la tabla " + tablaBuscar + " no es válido");
+                    return gestion;
+                }
+
+                if (!ExisteTabla(tablaBuscar, connectionString))
+                {
+                    gestion.setError($"Error: No existe la tabla {tablaBuscar}");
+                    return gestion;
+                }
+
+                for (int i = 0; i < registro.Condiciones.Count; i++)
+                {
+                    if (!EsNombreValido(registro.Condiciones[i].NombreColumna))
+                    {
+                        gestion.setError("Error: El nombre de la Columna " + registro.Condiciones[i].NombreColumna + " no es válido");
+                        return gestion;
+                    }
+
+                    if (!ExisteColumna(tablaBuscar, registro.Condiciones[i].NombreColumna, connectionString))
+                    {
+                        gestion.setError($"Error: En la tabla {tablaBuscar} no existe la columna {registro.Condiciones[i].NombreColumna}");
+                        return gestion;
+                    }
+
+                    if (!EsNombreValido(registro.ValoresNuevos.NombreColumna))
+                    {
+                        gestion.setError("Error: El nombre de la Columna " + registro.ValoresNuevos.NombreColumna + " no es válido");
+                        return gestion;
+                    }
+
+                    if (!ExisteColumna(tablaBuscar, registro.ValoresNuevos.NombreColumna, connectionString))
+                    {
+                        gestion.setError($"Error: En la tabla {tablaBuscar} no existe la columna {registro.ValoresNuevos.NombreColumna}");
+                        return gestion;
+                    }
+
+                    if (!ExisteValor(tablaBuscar, registro.Condiciones[i].NombreColumna, registro.Condiciones[i].ValorRegistro, connectionString))
+                    {
+                        gestion.setError($"Error: No existe el registro {registro.Condiciones[i].ValorRegistro} en la columna {registro.Condiciones[i].NombreColumna}");
+                        return gestion;
+                    }
+                }
+                for (int i = 0; i < registro.Condiciones.Count; i++)
+                {
+                    using (SqlConnection connection = new SqlConnection(connectionString))
+                    {
+                        connection.Open();
+                        string query = $"UPDATE {tablaBuscar} SET {registro.ValoresNuevos.NombreColumna} = @NuevoValor WHERE {registro.Condiciones[i].NombreColumna} = @Valor";
+                        using (SqlCommand command = new SqlCommand(query, connection))
+                        {
+                            command.Parameters.AddWithValue("@Valor", registro.Condiciones[i].ValorRegistro);
+                            command.Parameters.AddWithValue("@NuevoValor", registro.ValoresNuevos.ValorRegistro);
+                            int borrado = command.ExecuteNonQuery();
+                            if (borrado > 0)
+                            {
+                                gestion.Correct("Registro editado correctamente.");
+                            }
+                        }
+                    }
+                }
+            }
+
             catch (Exception ex)
             {
                 gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message });
