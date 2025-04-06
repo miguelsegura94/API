@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using Microsoft.Data.SqlClient;
 
 namespace GestorBaseDatos.GestorBD.GestorBD
 {
+    //TODO HACER UN METODO QUE COJA POR EL CONTROLLER SI ES AND O ES OR, EN EL CONDICIONANTE PARA EDITAR UN REGISTRO, USAR EL STRING BUILDER
     public partial class GestorBD
     {
         //AQUI ESTA EL GET TODOS LO REGISTROS, EL GET REGISTRO POR VALOR, ELIMINAR REGISTRO POR VALOR, OBTENER EL JSON PARA INSERTAR UN REGISTRO E INSERTARLO
@@ -252,7 +254,7 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                 {
                     gestion.setError($"Error: No existe la tabla {tablaBuscar}");
                 }
-                
+
             }
             catch (Exception ex)
             {
@@ -449,6 +451,100 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                         }
                     }
                 }
+            }
+
+            catch (Exception ex)
+            {
+                gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message });
+            }
+            return gestion;
+        }
+        public Gestion EditarTodosRegistrosQueCumplenVariasCondicionesALaVezEnTablaGestor(string tablaBuscar, string andOr, RegistroMultipleEditar registro, string connectionString)
+        {
+            Gestion gestion = new Gestion();
+            try
+            {
+                if (!ExisteTabla(tablaBuscar, connectionString))
+                {
+                    gestion.setError($"Error: No existe la tabla {tablaBuscar}");
+                    return gestion;
+                }
+                for (int i = 0; i < registro.Condiciones.Count; i++)
+                {
+                    if (!ExisteColumna(tablaBuscar, registro.Condiciones[i].NombreColumna, connectionString))
+                    {
+                        gestion.setError($"Error: En la tabla {tablaBuscar} no existe la columna {registro.Condiciones[i].NombreColumna}");
+                        return gestion;
+                    }
+                    if (!TipoDatoCorrecto(tablaBuscar, registro.Condiciones[i].NombreColumna, registro.Condiciones[i].ValorRegistro, connectionString))
+                    {
+                        gestion.setError($"Error: El tipo de dato no concide con la columna {registro.Condiciones[i].NombreColumna}");
+                        return gestion;
+                    }
+                    if (!ExisteColumna(tablaBuscar, registro.ValoresNuevos.NombreColumna, connectionString))
+                    {
+                        gestion.setError($"Error: En la tabla {tablaBuscar} no existe la columna {registro.ValoresNuevos.NombreColumna}");
+                        return gestion;
+                    }
+                    if (!TipoDatoCorrecto(tablaBuscar, registro.ValoresNuevos.NombreColumna, registro.ValoresNuevos.ValorRegistro, connectionString))
+                    {
+                        gestion.setError($"Error: El tipo de dato no concide con la columna {registro.ValoresNuevos.NombreColumna}");
+                        return gestion;
+                    }
+                    if (!ExisteValor(tablaBuscar, registro.Condiciones[i].NombreColumna, registro.Condiciones[i].ValorRegistro, connectionString))
+                    {
+                        gestion.setError($"Error: No existe el registro {registro.Condiciones[i].ValorRegistro} en la columna {registro.Condiciones[i].NombreColumna}");
+                        return gestion;
+                    }
+                }
+                if (registro.Condiciones.Count <= 0)
+                {
+                    gestion.setError($"Error: No hay suficientes condiciones para poder editar el registro");
+                    return gestion;
+                }
+                StringBuilder sb = new StringBuilder();
+                sb.Append($"UPDATE {tablaBuscar} SET {registro.ValoresNuevos.NombreColumna} = @NuevoValor WHERE ");
+
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    for (int i = 0; i < registro.Condiciones.Count; i++)
+                    {
+                        sb.Append($"{registro.Condiciones[i].NombreColumna} = @valor{i}");
+                        if (i < registro.Condiciones.Count - 1)
+                        {
+                            if (andOr == "A")
+                            {
+                                sb.Append(" AND ");
+                            }
+                            else if (andOr == "O")
+                            {
+                                sb.Append(" OR ");
+                            }
+                            else
+                            {
+                                gestion.setError($"Error: Tienes que escribir A o O");
+                                return gestion;
+                            }
+                        }
+                    }
+                    string query = sb.ToString();
+                    connection.Open();
+
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        for (int i = 0; i < registro.Condiciones.Count; i++)
+                        {
+                            command.Parameters.AddWithValue($"@valor{i}", registro.Condiciones[i].ValorRegistro);
+                        }
+                        command.Parameters.AddWithValue("@NuevoValor", registro.ValoresNuevos.ValorRegistro);
+                        int editado = command.ExecuteNonQuery();
+                        if (editado > 0)
+                        {
+                            gestion.Correct("Registro editado correctamente.");
+                        }
+                    }
+                }
+
             }
 
             catch (Exception ex)

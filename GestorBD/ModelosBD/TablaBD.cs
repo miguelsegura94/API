@@ -60,9 +60,8 @@ namespace BBDD.Modelos
     {
         public List<Condicion> Condiciones { get; set; }
         public ColumnaBasica ValoresNuevos { get; set; }
-        
-
     }
+
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum TipoDato
     {

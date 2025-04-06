@@ -250,6 +250,28 @@ namespace API.Controllers
             }
             return BadRequest(gestion);
         }
+        [HttpPut("EditarTodosRegistrosQueCumplenVariasCondicionesALaVez/{tabla}/{andOr}")]
+        public IActionResult EditarTodosRegistrosQueCumplenVariasCondicionesALaVezEnTabla(string tabla,string andOr, [FromBody] RegistroMultipleEditar registro)
+        {
+            Gestion gestion = new Gestion();
+            try
+            {
+                gestion = servicioBD.EditarTodosRegistrosQueCumplenVariasCondicionesALaVezEnTablaServicio(tabla,andOr, registro);
+                if (gestion.isCorrect())
+                {
+                    return Ok(gestion);
+                }
+                else
+                {
+                    return NotFound(gestion);
+                }
+            }
+            catch (Exception ex)
+            {
+                gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message });
+            }
+            return BadRequest(gestion);
+        }
         /// <summary>
         /// Hace una llamada a la base de datos y elimina el registro especifico de la tabla
         /// </summary>

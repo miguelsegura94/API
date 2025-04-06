@@ -13,8 +13,8 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 namespace GestorBaseDatos.GestorBD.GestorBD
 {
 
-    //TODO UNIFICAR EN EL MISMO METODO QUE COMPRUEBE QUE LA TABLA SEA VALIDA Y QUE LOS CARACTERES SEAN CORRECTOS
-    //TODO HACER UN METODO PARA COMPROBAR QUE LOS VALORES QUE INGRESO SON DEL TIPO DE DATO NECESARIO
+    
+    
 
     //TODO MEJORAR EL CODIGO EN LOS REGISTROS PARA AÑADIR EL AND O EL OR EN EL QUERY
 
@@ -102,8 +102,6 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                 {
                     if (!ExisteColumna(nombreTabla, columnaAñadir.Nombre, connectionString))
                     {
-
-
                         using (SqlConnection connection = new SqlConnection(connectionString))
                         {
                             connection.Open();
