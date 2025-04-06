@@ -18,7 +18,7 @@ namespace GestorBaseDatos.GestorBD.GestorBD
         /// <summary>
         /// Metodo para crear una nueva tabla asjdasd
         /// </summary>
-        /// <param name="tabla">Todos los parametros necesarios para crear la nueva tabla</param>
+        /// <param name="tabla">Todos los parametros necesarios para crear la nueva tabla en BD</param>
         /// <param name="connectionString">La cadena de conexion a la base de datos</param>
         /// <returns>Devuelve el mensaje correspondiente si ha podido crear la tabla o el error especificamente</returns>
         public Gestion CrearTablaGestor(TablaBD tabla, string connectionString)
