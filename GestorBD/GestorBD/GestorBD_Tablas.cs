@@ -16,7 +16,7 @@ namespace GestorBaseDatos.GestorBD.GestorBD
 
 
         /// <summary>
-        /// Metodo para crear una nueva tabla prueba merge
+        /// Metodo para crear una nueva tabla asjdasd
         /// </summary>
         /// <param name="tabla">Todos los parametros necesarios para crear la nueva tabla</param>
         /// <param name="connectionString">La cadena de conexion a la base de datos</param>
