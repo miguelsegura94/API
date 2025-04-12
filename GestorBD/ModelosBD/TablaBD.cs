@@ -65,28 +65,29 @@ namespace BBDD.Modelos
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum TipoDato
     {
-        Entero,  
-        Decimal, 
-        Texto,   
-        Fecha,   
-        Booleano 
+        @int,  
+        @double, 
+        @string,   
+        date,   
+        @bool 
     }
-    //TODO PEKE, como hacer para poder enviar por el json int, y que devuelva INT,ETC
     public static class TipoDatoExtensions
     {
         public static string ObtenerTipoSQL(this TipoDato tipo, int? longitud = null)
         {
             switch (tipo)
             {
-                case TipoDato.Entero:
+                case TipoDato.@int:
                     return "INT";
-                case TipoDato.Decimal:
+                case TipoDato.@double:
                     return "DECIMAL(18,2)";
-                case TipoDato.Texto:
-                    return longitud.HasValue ? $"NVARCHAR({longitud})" : "NVARCHAR(MAX)";
-                case TipoDato.Fecha:
+                case TipoDato.@string:
+                    return (longitud.HasValue && longitud.Value > 0)
+        ? $"NVARCHAR({longitud})"
+        : "NVARCHAR(MAX)";
+                case TipoDato.date:
                     return "DATETIME";
-                case TipoDato.Booleano:
+                case TipoDato.@bool:
                     return "BIT";
                 default:
                     throw new ArgumentException("Tipo de dato no soportado");

@@ -462,11 +462,25 @@ namespace GestorBaseDatos.GestorBD.GestorBD
         public Gestion EditarTodosRegistrosQueCumplenVariasCondicionesALaVezEnTablaGestor(string tablaBuscar, string andOr, RegistroMultipleEditar registro, string connectionString)
         {
             Gestion gestion = new Gestion();
+            string conjuncion = "";
             try
             {
                 if (!ExisteTabla(tablaBuscar, connectionString))
                 {
                     gestion.setError($"Error: No existe la tabla {tablaBuscar}");
+                    return gestion;
+                }
+                if (andOr == "A")
+                {
+                    conjuncion = " AND ";
+                }
+                else if (andOr == "O")
+                {
+                    conjuncion = " OR ";
+                }
+                else
+                {
+                    gestion.setError($"Error: Tienes que escribir A o O");
                     return gestion;
                 }
                 for (int i = 0; i < registro.Condiciones.Count; i++)
@@ -512,19 +526,7 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                         sb.Append($"{registro.Condiciones[i].NombreColumna} = @valor{i}");
                         if (i < registro.Condiciones.Count - 1)
                         {
-                            if (andOr == "A")
-                            {
-                                sb.Append(" AND ");
-                            }
-                            else if (andOr == "O")
-                            {
-                                sb.Append(" OR ");
-                            }
-                            else
-                            {
-                                gestion.setError($"Error: Tienes que escribir A o O");
-                                return gestion;
-                            }
+                            sb.Append(conjuncion);
                         }
                     }
                     string query = sb.ToString();
@@ -541,6 +543,10 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                         if (editado > 0)
                         {
                             gestion.Correct("Registro editado correctamente.");
+                        }
+                        else
+                        {
+                            gestion.setError("Error: No se han podido editar registros, condicion no válida.");
                         }
                     }
                 }

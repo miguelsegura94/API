@@ -14,7 +14,7 @@ namespace GestorBaseDatos.GestorBD.GestorBD
         //AQUI ESTAN EL CREAR Y ELIMINAR TABLA
 
 
-
+        //TODO HACER METODO GET TABLAS
         /// <summary>
         /// Metodo para crear una nueva tabla asjdasd
         /// </summary>
