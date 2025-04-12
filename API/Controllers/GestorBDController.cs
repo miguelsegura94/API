@@ -50,6 +50,54 @@ namespace API.Controllers
             return BadRequest(gestion);
         }
         /// <summary>
+        /// Hace una llamada a la base de datos y obtiene los nombres de todas las tablas
+        /// </summary>
+        /// <returns>Devuelve una gestion, ya sea correcta o no, con todas la tablas o con mensaje de error correspondiente</returns>
+        [HttpGet("GetTablas")]
+        public IActionResult GetTablas()
+        {
+            Gestion gestion = new Gestion();
+            try
+            {
+                gestion = servicioBD.GetTablasServicio();
+                if (gestion.isCorrect())
+                {
+                    return Ok(gestion);
+                }
+                else
+                {
+                    return NotFound(gestion);
+                }
+            }
+            catch (Exception ex)
+            {
+                gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message });
+            }
+            return BadRequest(gestion);
+        }
+        [HttpPost("TEST")]
+        public IActionResult Test([FromBody] TablaBD tabla)
+        {
+            Gestion gestion = new Gestion();
+            try
+            {
+                gestion = servicioBD.TestServicio(tabla);
+                if (gestion.isCorrect())
+                {
+                    return Ok(gestion);
+                }
+                else
+                {
+                    return NotFound(gestion);
+                }
+            }
+            catch (Exception ex)
+            {
+                gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message });
+            }
+            return BadRequest(gestion);
+        }
+        /// <summary>
         /// Hace una llamada a la base de datos y obtiene el registro especifico por id
         /// </summary>
         /// <param name="tabla">Nombre de la tabla en la que buscar el registro</param>

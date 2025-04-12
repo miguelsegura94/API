@@ -292,6 +292,74 @@ namespace GestorBaseDatos.GestorBD.GestorBD
             }
         }
         /// <summary>
+        /// Metodo para comprobar si esa columna es primary key
+        /// </summary>
+        /// <param name="tabla">Nombre de la tabla en la que comprobar</param>
+        /// <param name="columna">Nombre de la columna para comrpobar si es primary key</param>
+        /// <param name="connectionString">La cadena de conexion a la base de datos</param>
+        /// <returns>Devuelve true si la columna especifica es primary key, de lo contrario devuelve false</returns>
+        public bool EsPrimaryKey(string tabla,string columna, string connectionString) 
+        {
+            bool esPrimaryKey = false;
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+                string query = @"
+            SELECT COUNT(*) 
+            FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
+            WHERE TABLE_NAME = @tabla 
+              AND COLUMN_NAME = @columna 
+              AND CONSTRAINT_NAME = (
+                  SELECT CONSTRAINT_NAME
+                  FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+                  WHERE TABLE_NAME = @tabla
+                    AND CONSTRAINT_TYPE = 'PRIMARY KEY'
+              );
+        ";
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@tabla", tabla);
+                    command.Parameters.AddWithValue("@columna", columna);
+                    int count = (int)command.ExecuteScalar();
+                    if (count >0)
+                    {
+                        esPrimaryKey = true;
+                    }
+                }
+            }
+            return esPrimaryKey;
+        }
+        /// <summary>
+        /// Metodo para comprobar si una tabla ya tiene primary key
+        /// </summary>
+        /// <param name="tabla">Nombre de la tabla donde buscar si hay primary key</param>
+        /// <param name="connectionString">La cadena de conexion a la base de datos</param>
+        /// <returns>Devuelve true si la tabla tiene primary key, en caso contrario devuelve false</returns>
+        public bool TienePrimaryKey(string tabla, string connectionString)
+        {
+            bool tienePrimaryKey = false;
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+                string query = $"SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE TABLE_NAME = @tabla AND CONSTRAINT_TYPE = 'PRIMARY KEY';";
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@tabla", tabla);
+                    int count = (int)command.ExecuteScalar();  // Cambié a COUNT(*) para obtener el número de resultados
+                    if (count > 0)
+                    {
+                        tienePrimaryKey = true;
+                    }
+                }
+            }
+            return tienePrimaryKey;
+        }
+
+        /// <summary>
         /// Valida que el nombre no contenga caracteres especiales para evitar la inyeccion SQL
         /// </summary>
         /// <param name="nombreValido">Nombre para validar</param>

@@ -31,6 +31,18 @@ namespace BBDD.Servicios
             gestion = _gestorBD.GetDatoEnTablaPorIdGestor(tabla,id, _connectionString);
             return gestion;
         }
+        public Gestion GetTablasServicio()
+        {
+            Gestion gestion = new Gestion();
+            gestion = _gestorBD.GetTablasGestor(_connectionString);
+            return gestion;
+        }
+        public Gestion TestServicio(TablaBD tabla)
+        {
+            Gestion gestion = new Gestion();
+            gestion = _gestorBD.TestGestor(tabla,_connectionString);
+            return gestion;
+        }
         public Gestion GetRegistroEnTablaPorValorServicio(string tabla, string columna, string valor)
         {
             Gestion gestion = new Gestion();

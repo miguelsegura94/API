@@ -22,6 +22,7 @@ namespace GestorBaseDatos.GestorBD.GestorBD
         /// <returns>Devuelve la gestion, si es correcto devuelve un ok, si no devuelve el mensaje de error correspondiente</returns>
         public Gestion AñadirColumnaCompletaATablaGestor(string nombreTabla, Columna columnaAñadir, string connectionString)
         {
+            //TODO arreglar exception already has a primary key defined
             Gestion gestion = new Gestion();
             StringBuilder sb = new StringBuilder();
             try
@@ -38,13 +39,15 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                                 {
                                     connection.Open();
                                     sb.Append($"ALTER TABLE {nombreTabla} ADD ");
-                                    sb.Append($"{columnaAñadir.Nombre} {columnaAñadir.Tipo}");
-                                    if (columnaAñadir.Longitud > 0)
-                                    {
-                                        sb.Append($"({columnaAñadir.Longitud})");
-                                    }
+                                    string tipoSQL = columnaAñadir.Tipo.ObtenerTipoSQL(columnaAñadir.Longitud);
+                                    sb.Append($"{columnaAñadir.Nombre} {tipoSQL}");
                                     if (columnaAñadir.PrimaryKey)
                                     {
+                                        if (TienePrimaryKey(nombreTabla, connectionString))
+                                        {
+                                            gestion.setError($"Error: La tabla {nombreTabla} ya tiene primary key.");
+                                            return gestion;
+                                        }
                                         sb.Append(" NOT NULL ");
                                         sb.Append($" PRIMARY KEY ");
                                     }
@@ -190,6 +193,11 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                                 {
                                     connection.Open();
                                     string query = $"ALTER TABLE {nombreTabla} DROP COLUMN {columnaEliminar.Nombre}";
+                                    if (EsPrimaryKey(nombreTabla, columnaEliminar.Nombre, connectionString))
+                                    {
+                                        gestion.setError($"Error: No se puede eliminar la columna {columnaEliminar.Nombre} por ser primary key.");
+                                        return gestion;
+                                    }
                                     SqlCommand command = new SqlCommand(query, connection);
                                     command.ExecuteNonQuery();
                                     if (!ExisteColumna(nombreTabla, columnaEliminar.Nombre, connectionString))

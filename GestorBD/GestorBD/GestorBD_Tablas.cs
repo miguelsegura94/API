@@ -14,7 +14,44 @@ namespace GestorBaseDatos.GestorBD.GestorBD
         //AQUI ESTAN EL CREAR Y ELIMINAR TABLA
 
 
-        //TODO HACER METODO GET TABLAS
+        /// <summary>
+        /// Obtiene una lista con todas las tablas que hay actualmente en la base de datos
+        /// </summary>
+        /// <param name="connectionString">La cadena de conexion a la base de datos</param>
+        /// <returns>Devuelve la gestion, con la lista de nombres de tablas, o el mensaje de error correspondiente</returns>
+        public Gestion GetTablasGestor(string connectionString)
+        {
+            Gestion gestion = new Gestion();
+            try
+            {
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    string query = "SELECT TABLE_NAME FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE = 'BASE TABLE';";
+                    SqlCommand command = new SqlCommand(query, connection);
+                    command.ExecuteNonQuery();
+                    SqlDataReader reader = command.ExecuteReader();
+                    gestion.data = new List<dynamic>();
+                    while (reader.Read())
+                    {
+                        Dictionary<string, dynamic> tablas = new Dictionary<string, dynamic>();
+
+                        for (int i = 0; i < reader.FieldCount; i++)
+                        {
+                            tablas[reader.GetName(i)] = reader.GetValue(i);
+                        }
+
+                        gestion.data.Add(tablas);
+                        gestion.Correct();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message });
+            }
+            return gestion;
+        }
         /// <summary>
         /// Metodo para crear una nueva tabla asjdasd
         /// </summary>
@@ -61,7 +98,7 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                                     {
                                         if (ExisteTabla(columna.ForeignKey.TablaOrigen, connectionString))
                                         {
-                                            //TODO COMPROBAR QUE LA FOREIGN KEY Y LA REFERENCIA SEAN DEL MISMO TIPO DE DATO Y LONGITUD SI TIENE( QUE SEAN COMPATIBLES)
+                                            //TODO PEKE COMPROBAR QUE LA FOREIGN KEY Y LA REFERENCIA SEAN DEL MISMO TIPO DE DATO Y LONGITUD SI TIENE( QUE SEAN COMPATIBLES)
                                             if (ExisteColumna(columna.ForeignKey.TablaOrigen, columna.ForeignKey.NombreColumna, connectionString))
                                             {
                                                 foreignKeys.Add($"FOREIGN KEY ({columna.ForeignKey.NombreColumna}) REFERENCES {columna.ForeignKey.TablaOrigen}({columna.ForeignKey.NombreColumna})");
@@ -116,6 +153,12 @@ namespace GestorBaseDatos.GestorBD.GestorBD
             {
                 gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message });
             }
+            return gestion;
+        }
+        public Gestion TestGestor(TablaBD tabla, string connectionString)
+        {
+            Gestion gestion = new Gestion();
+            
             return gestion;
         }
         /// <summary>
