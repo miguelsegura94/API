@@ -24,7 +24,7 @@ namespace BBDD.Modelos
     }
     public class ForeignKey 
     { 
-        public string NombreColumna { get; set; }
+        public string ColumnaOrigen { get; set; }
         public string TablaOrigen { get; set; }
     }
     public class ColumnaInsert

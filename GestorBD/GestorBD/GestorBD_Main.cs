@@ -349,7 +349,7 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@tabla", tabla);
-                    int count = (int)command.ExecuteScalar();  // Cambié a COUNT(*) para obtener el número de resultados
+                    int count = (int)command.ExecuteScalar(); 
                     if (count > 0)
                     {
                         tienePrimaryKey = true;
@@ -358,7 +358,77 @@ namespace GestorBaseDatos.GestorBD.GestorBD
             }
             return tienePrimaryKey;
         }
+        /// <summary>
+        /// Metodo que devuelve las claves foraneas para poder eliminarlas correctamente de la tabla antes de eliminar la columna
+        /// </summary>
+        /// <param name="tabla">Nombre de la tabla donde buscar si hay claves foraneas</param>
+        /// <param name="connectionString">La cadena de conexion a la base de datos</param>
+        /// <returns>Devuelve una lista con las claves foraneas en esa tabla, ya sea 0, 1 o 50</returns>
+        public List<string> NombreClaveForanea(string tabla, string connectionString)
+        {
+            List<string> foreign = new List<string>();
 
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+                string query = $"SELECT CONSTRAINT_NAME FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE TABLE_NAME = @tabla AND CONSTRAINT_TYPE = 'FOREIGN KEY';";
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@tabla", tabla);
+                    SqlDataReader reader = command.ExecuteReader();
+                    while (reader.Read())
+                    {
+                        foreign.Add(reader.GetString(0));
+                    }
+                }
+            }
+
+            return foreign;
+        }
+        /// <summary>
+        /// Metodo que devuelve el string con el tipo de dato completo, para poder comprobar que la columna con clave foranea son del mismo tipo de dato
+        /// </summary>
+        /// <param name="tabla">Tabla donde se cosulta la columna</param>
+        /// <param name="columna">Columna donde consultar el tipo de dato y longitud</param>
+        /// <param name="connectionString">La cadena de conexion a la base de datos</param>
+        /// <returns>Devuelve un string con el tipo de dato exacto y longitud si tiene</returns>
+        public string TipoDato(string tabla, string columna, string connectionString)
+        {
+            string tipoCompleto = "";
+
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+                string query = $"SELECT DATA_TYPE, CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = @tabla AND COLUMN_NAME = @columna";
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@tabla", tabla);
+                    command.Parameters.AddWithValue("@columna", columna);
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            string tipo = reader.GetString(0).ToUpper();
+                            int? longitud = reader.IsDBNull(1) ? (int?)null : reader.GetInt32(1);
+
+                            string resultado = tipo;
+
+                            if (longitud.HasValue)
+                            {
+                                tipoCompleto = $"{tipo}({longitud.Value})";
+                            }
+                            else
+                            {
+                                tipoCompleto = tipo;
+                            }
+                        }
+                    }
+                }
+            }
+            return tipoCompleto;
+        }
         /// <summary>
         /// Valida que el nombre no contenga caracteres especiales para evitar la inyeccion SQL
         /// </summary>

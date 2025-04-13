@@ -81,6 +81,7 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                                 {
                                     string tipoSQL = columna.Tipo.ObtenerTipoSQL(columna.Longitud);
                                     sb.Append($"{columna.Nombre} {tipoSQL}");
+                                    
                                     if (columna.PrimaryKey)
                                     {
                                         sb.Append(" NOT NULL ");
@@ -94,18 +95,32 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                                     {
                                         sb.Append(",");
                                     }
-                                    if (columna.ForeignKey != null && !string.IsNullOrEmpty(columna.ForeignKey.NombreColumna))
+                                    if (columna.ForeignKey != null && !string.IsNullOrEmpty(columna.ForeignKey.ColumnaOrigen))
                                     {
                                         if (ExisteTabla(columna.ForeignKey.TablaOrigen, connectionString))
                                         {
-                                            //TODO PEKE COMPROBAR QUE LA FOREIGN KEY Y LA REFERENCIA SEAN DEL MISMO TIPO DE DATO Y LONGITUD SI TIENE( QUE SEAN COMPATIBLES)
-                                            if (ExisteColumna(columna.ForeignKey.TablaOrigen, columna.ForeignKey.NombreColumna, connectionString))
+                                            if (ExisteColumna(columna.ForeignKey.TablaOrigen, columna.ForeignKey.ColumnaOrigen, connectionString))
                                             {
-                                                foreignKeys.Add($"FOREIGN KEY ({columna.ForeignKey.NombreColumna}) REFERENCES {columna.ForeignKey.TablaOrigen}({columna.ForeignKey.NombreColumna})");
+                                                if(!EsPrimaryKey(columna.ForeignKey.TablaOrigen, columna.ForeignKey.ColumnaOrigen, connectionString))
+                                                {
+                                                    gestion.setError($"Error de foreign key: La columna {columna.ForeignKey.ColumnaOrigen} no es primary key en la tabla {columna.ForeignKey.TablaOrigen}.");
+                                                    return gestion;
+                                                }
+                                                string foreignTipo = TipoDato(columna.ForeignKey.TablaOrigen, columna.ForeignKey.ColumnaOrigen, connectionString);
+
+                                                if (tipoSQL == foreignTipo)
+                                                {
+                                                    sb.Append($" FOREIGN KEY ({columna.Nombre}) REFERENCES {columna.ForeignKey.TablaOrigen}({columna.ForeignKey.ColumnaOrigen})");
+                                                }
+                                                else
+                                                {
+                                                    gestion.setError($"Error: La columna {columna.ForeignKey.ColumnaOrigen} no tiene el mismo tipo que la columna que quieres añadir.");
+                                                    return gestion;
+                                                }
                                             }
                                             else
                                             {
-                                                gestion.setError($"Error de foreign key: La columna {columna.ForeignKey.NombreColumna} no existe en la tabla {columna.ForeignKey.TablaOrigen}.");
+                                                gestion.setError($"Error de foreign key: La columna {columna.ForeignKey.ColumnaOrigen} no existe en la tabla {columna.ForeignKey.TablaOrigen}.");
                                             }
                                         }
                                         else

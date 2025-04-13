@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using BBDD.Modelos;
 using GestorBaseDatos.GestionCarpeta;
 using Microsoft.Data.SqlClient;
+using Microsoft.Win32;
 
 namespace GestorBaseDatos.GestorBD.GestorBD
 {
@@ -55,17 +56,33 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                                     {
                                         sb.Append(" NOT NULL ");
                                     }
-                                    if (columnaAñadir.ForeignKey != null && !string.IsNullOrEmpty(columnaAñadir.ForeignKey.NombreColumna))
+                                    if (columnaAñadir.ForeignKey != null && !string.IsNullOrEmpty(columnaAñadir.ForeignKey.ColumnaOrigen))
                                     {
                                         if (ExisteTabla(columnaAñadir.ForeignKey.TablaOrigen, connectionString))
                                         {
-                                            if (ExisteColumna(columnaAñadir.ForeignKey.TablaOrigen, columnaAñadir.ForeignKey.NombreColumna, connectionString))
+                                            if (ExisteColumna(columnaAñadir.ForeignKey.TablaOrigen, columnaAñadir.ForeignKey.ColumnaOrigen, connectionString))
                                             {
-                                                sb.Append($"FOREIGN KEY ({columnaAñadir.ForeignKey.NombreColumna}) REFERENCES {columnaAñadir.ForeignKey.TablaOrigen}({columnaAñadir.ForeignKey.NombreColumna})");
+                                                if (!EsPrimaryKey(columnaAñadir.ForeignKey.TablaOrigen, columnaAñadir.ForeignKey.ColumnaOrigen, connectionString))
+                                                {
+                                                    gestion.setError($"Error de foreign key: La columna {columnaAñadir.ForeignKey.ColumnaOrigen} no es primary key en la tabla {columnaAñadir.ForeignKey.TablaOrigen}.");
+                                                    return gestion;
+                                                }
+                                                string foreignTipo = TipoDato(columnaAñadir.ForeignKey.TablaOrigen, columnaAñadir.ForeignKey.ColumnaOrigen,connectionString);
+                                                
+                                                if (tipoSQL== foreignTipo)
+                                                {
+                                                    sb.Append($" FOREIGN KEY ({columnaAñadir.Nombre}) REFERENCES {columnaAñadir.ForeignKey.TablaOrigen}({columnaAñadir.ForeignKey.ColumnaOrigen})");
+                                                }
+                                                else
+                                                {
+                                                    gestion.setError($"Error: La columna {columnaAñadir.ForeignKey.ColumnaOrigen} no tiene el mismo tipo que la columna que quieres añadir.");
+                                                    return gestion;
+                                                }
+                                                
                                             }
                                             else
                                             {
-                                                gestion.setError($"Error: La columna {columnaAñadir.ForeignKey.NombreColumna} no existe en la tabla {columnaAñadir.ForeignKey.TablaOrigen}.");
+                                                gestion.setError($"Error: La columna {columnaAñadir.ForeignKey.ColumnaOrigen} no existe en la tabla {columnaAñadir.ForeignKey.TablaOrigen}.");
                                                 return gestion;
                                             }
                                         }
@@ -76,7 +93,6 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                                         }
                                     }
                                     string query = sb.ToString();
-                                    Console.WriteLine(query);
                                     SqlCommand command = new SqlCommand(query, connection);
                                     command.ExecuteNonQuery();
                                     if (ExisteColumna(nombreTabla, columnaAñadir.Nombre, connectionString))
@@ -197,6 +213,17 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                                     {
                                         gestion.setError($"Error: No se puede eliminar la columna {columnaEliminar.Nombre} por ser primary key.");
                                         return gestion;
+                                    }
+                                    List<string> clavesForaneas = new List<string>();
+                                    clavesForaneas = NombreClaveForanea(nombreTabla,connectionString);
+                                    if (clavesForaneas.Count > 0)
+                                    {
+                                        for (int i = 0; i < clavesForaneas.Count; i++)
+                                        {
+                                            string queryForeign = $"ALTER TABLE {nombreTabla} DROP CONSTRAINT {clavesForaneas[i]};";
+                                            SqlCommand commandForeign = new SqlCommand(queryForeign, connection);
+                                            commandForeign.ExecuteNonQuery();
+                                        }
                                     }
                                     SqlCommand command = new SqlCommand(query, connection);
                                     command.ExecuteNonQuery();
