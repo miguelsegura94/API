@@ -7,10 +7,11 @@ using System.Threading.Tasks;
 using BBDD.Modelos;
 using GestorBaseDatos.GestionCarpeta;
 using Microsoft.Data.SqlClient;
+using Microsoft.Win32;
 
 namespace GestorBaseDatos.GestorBD.GestorBD
 {
-    
+
     public partial class GestorBD
     {
         //AQUI ESTA EL GET TODOS LO REGISTROS, EL GET REGISTRO POR VALOR, ELIMINAR REGISTRO POR VALOR, OBTENER EL JSON PARA INSERTAR UN REGISTRO E INSERTARLO
@@ -84,10 +85,18 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                 }
                 if (!ExisteColumna(tabla, columna, connectionString))
                 {
-
                     gestion.setError($"Error: En la tabla {tabla} no existe la columna {columna}");
                     return gestion;
-
+                }
+                if (!EsNombreValido(valor))
+                {
+                    gestion.setError($"Error: El nombre del valor {valor} no es válido");
+                    return gestion;
+                }
+                if (!TipoDatoCorrecto(tabla, columna, valor, connectionString))
+                {
+                    gestion.setError($"Error: El tipo de dato no concide con la columna {columna}");
+                    return gestion;
                 }
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
@@ -106,8 +115,13 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                             generico[reader.GetName(i)] = reader.GetValue(i);
                         }
                         gestion.data.Add(generico);
-                        gestion.Correct();
                     }
+                    if (((List<dynamic>)gestion.data).Count <= 0)
+                    {
+                        gestion.setError($"Error: En la tabla {tabla} y la columna {columna} no existe el valor {valor}");
+                        return gestion;
+                    }
+                    gestion.Correct();
                 }
             }
             catch (Exception ex)
@@ -263,6 +277,100 @@ namespace GestorBaseDatos.GestorBD.GestorBD
             return gestion;
         }
         /// <summary>
+        /// Crea un registro en la base de datos pasandole el body necesario para esa tabla
+        /// </summary>
+        /// <param name="tablaBuscar">Tabla donde añadir los registros</param>
+        /// <param name="registroAñadir">Registro para añadir, columna y valor, tantas columnas y valores como columnas tenga la tabla</param>
+        /// <param name="connectionString">La cadena de conexion a la base de datos</param>
+        /// <returns>Devulve la gestion con su mensaje correspondiente, si ha podido añadir el registro, o con el mensaje de error </returns>
+        public Gestion CrearRegistroEnTablaGestor(string tablaBuscar, List<RegistroInsert> registroAñadir, string connectionString)
+        {
+            Gestion gestion = new Gestion();
+            try
+            {
+                //comprobar que el nombre de la columna no se repite en el body
+                if (!ExisteTabla(tablaBuscar, connectionString))
+                {
+                    gestion.setError($"Error: No existe la tabla {tablaBuscar}");
+                    return gestion;
+                }
+                if (registroAñadir.Count <= 0)
+                {
+                    gestion.setError($"Error: Tienes que añadir algun registro");
+                    return gestion;
+                }
+                for (int i = 0; i < registroAñadir.Count; i++)
+                {
+                    
+
+                    if (!ExisteColumna(tablaBuscar, registroAñadir[i].NombreColumna, connectionString))
+                    {
+                        gestion.setError($"Error: En la tabla {tablaBuscar} no existe la columna {registroAñadir[i].NombreColumna}");
+                        return gestion;
+                    }
+                    if (EsAutoincremental(tablaBuscar, registroAñadir[i].NombreColumna, connectionString))
+                    {
+                        gestion.setError($"Error: No puedes elegir el valor para la columna {registroAñadir[i].NombreColumna}");
+                        return gestion;
+                    }
+                    for (int j = i+1; j < registroAñadir.Count; j++)
+                    {
+                        if (registroAñadir[i].NombreColumna == registroAñadir[j].NombreColumna)
+                        {
+                            gestion.setError($"Error: No puedes añadir el nombre {registroAñadir[i].NombreColumna} 2 veces en el body");
+                            return gestion;
+                        }
+                    }
+                    if (!EsNombreValido(registroAñadir[i].ValorInsert))
+                    {
+                        gestion.setError($"Error: El nombre del valor {registroAñadir[i].ValorInsert} no es valido.");
+                        return gestion;
+                    }
+                    if (!TipoDatoCorrecto(tablaBuscar, registroAñadir[i].NombreColumna, registroAñadir[i].ValorInsert, connectionString))
+                    {
+                        gestion.setError($"Error: El tipo de dato no concide con la columna {registroAñadir[i].NombreColumna}");
+                        return gestion;
+                    }
+                }
+                StringBuilder sbc = new StringBuilder();
+                StringBuilder sbv = new StringBuilder();
+                for (int i = 0; i < registroAñadir.Count; i++)
+                {
+                    sbc.Append(registroAñadir[i].NombreColumna);
+                    sbv.Append($"@Valor{i}");
+                    if (i < registroAñadir.Count - 1)
+                    {
+                        sbc.Append(", ");
+                        sbv.Append(", ");
+                    }
+                }
+                string columnas = sbc.ToString();
+                string valores = sbv.ToString();
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    connection.Open();
+                    string query = $"INSERT INTO {tablaBuscar} ({columnas}) VALUES ({valores})";
+                    using (SqlCommand command = new SqlCommand(query, connection))
+                    {
+                        for (int i = 0; i < registroAñadir.Count; i++)
+                        {
+                            command.Parameters.AddWithValue($"@valor{i}", registroAñadir[i].ValorInsert);
+                        }
+                        int añadido = command.ExecuteNonQuery();
+                        if (añadido > 0)
+                        {
+                            gestion.Correct("Registro añadido correctamente.");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message });
+            }
+            return gestion;
+        }
+        /// <summary>
         /// Elimina el registro especificado de la tabla especificada
         /// </summary>
         /// <param name="tablaBuscar">Tabla de la que se va a eliminar el registro</param>
@@ -380,7 +488,6 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                     }
                 }
             }
-
             catch (Exception ex)
             {
                 gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message });

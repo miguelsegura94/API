@@ -187,6 +187,34 @@ namespace API.Controllers
             return BadRequest(gestion);
         }
         /// <summary>
+        /// Hace una llamada a la base de datos y crea un registro en la base de datos pasandole el body necesario para esa tabla
+        /// </summary>
+        /// <param name="tabla">Tabla donde añadir el registro</param>
+        /// <param name="registro">Lista de columnas y valores a insertar en la tabla</param>
+        /// <returns>Devulve la gestion con su mensaje correspondiente, si ha podido añadir el registro, o con el mensaje de error </returns>
+        [HttpPost("CrearRegistroEnTabla/{tabla}")]
+        public IActionResult CrearRegistroEnTabla(string tabla, [FromBody] List<RegistroInsert> registro)
+        {
+            Gestion gestion = new Gestion();
+            try
+            {
+                gestion = servicioBD.CrearRegistroEnTablaServicio(tabla,registro);
+                if (gestion.isCorrect())
+                {
+                    return Ok(gestion);
+                }
+                else
+                {
+                    return NotFound(gestion);
+                }
+            }
+            catch (Exception ex)
+            {
+                gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message });
+            }
+            return BadRequest(gestion);
+        }
+        /// <summary>
         /// Hace una llamada a la base de datos y crear un nuevo registro en una tabla especificada
         /// </summary>
         /// <param name="tabla">Nombre de la tabla donde crear el nuevo registro</param>

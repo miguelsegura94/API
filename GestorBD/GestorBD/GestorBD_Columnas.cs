@@ -23,7 +23,7 @@ namespace GestorBaseDatos.GestorBD.GestorBD
         /// <returns>Devuelve la gestion, si es correcto devuelve un ok, si no devuelve el mensaje de error correspondiente</returns>
         public Gestion AñadirColumnaCompletaATablaGestor(string nombreTabla, Columna columnaAñadir, string connectionString)
         {
-            //TODO arreglar exception already has a primary key defined
+
             Gestion gestion = new Gestion();
             StringBuilder sb = new StringBuilder();
             try
@@ -67,9 +67,9 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                                                     gestion.setError($"Error de foreign key: La columna {columnaAñadir.ForeignKey.ColumnaOrigen} no es primary key en la tabla {columnaAñadir.ForeignKey.TablaOrigen}.");
                                                     return gestion;
                                                 }
-                                                string foreignTipo = TipoDato(columnaAñadir.ForeignKey.TablaOrigen, columnaAñadir.ForeignKey.ColumnaOrigen,connectionString);
+                                                string foreignTipo = TipoDato(columnaAñadir.ForeignKey.TablaOrigen, columnaAñadir.ForeignKey.ColumnaOrigen, connectionString);
                                                 
-                                                if (tipoSQL== foreignTipo)
+                                                if (tipoSQL == foreignTipo)
                                                 {
                                                     sb.Append($" FOREIGN KEY ({columnaAñadir.Nombre}) REFERENCES {columnaAñadir.ForeignKey.TablaOrigen}({columnaAñadir.ForeignKey.ColumnaOrigen})");
                                                 }
@@ -78,7 +78,7 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                                                     gestion.setError($"Error: La columna {columnaAñadir.ForeignKey.ColumnaOrigen} no tiene el mismo tipo que la columna que quieres añadir.");
                                                     return gestion;
                                                 }
-                                                
+
                                             }
                                             else
                                             {
@@ -215,7 +215,7 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                                         return gestion;
                                     }
                                     List<string> clavesForaneas = new List<string>();
-                                    clavesForaneas = NombreClaveForanea(nombreTabla,connectionString);
+                                    clavesForaneas = NombreClaveForanea(nombreTabla, connectionString);
                                     if (clavesForaneas.Count > 0)
                                     {
                                         for (int i = 0; i < clavesForaneas.Count; i++)

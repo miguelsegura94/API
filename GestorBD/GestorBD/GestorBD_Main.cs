@@ -199,6 +199,14 @@ namespace GestorBaseDatos.GestorBD.GestorBD
             }
             return existe;
         }
+        /// <summary>
+        /// Metodo para comprobar si ya existe un valor en una columna
+        /// </summary>
+        /// <param name="tabla">TAbla donde buscar el valor</param>
+        /// <param name="columna">Columna donde buscar el valor</param>
+        /// <param name="valor">Valor para comprobar si existe</param>
+        /// <param name="connectionString">La cadena de conexion a la base de datos</param>
+        /// <returns>Si existe el valor en la columna devuelve true, si no, false</returns>
         public bool ExisteValor(string tabla, string columna, string valor, string connectionString)
         {
             bool existe = false;
@@ -219,6 +227,39 @@ namespace GestorBaseDatos.GestorBD.GestorBD
             }
             return existe;
         }
+        /// <summary>
+        /// Metodo para comprobar si una columna es autoincremental
+        /// </summary>
+        /// <param name="tabla">Nombre de la tabla donde buscar la columna</param>
+        /// <param name="columna">Nombre de la columna a comprobar si es autoinc</param>
+        /// <param name="connectionString">La cadena de conexion a la base de datos</param>
+        /// <returns>Si la columna es autoinc devuelve true, si no, false</returns>
+        public bool EsAutoincremental(string tabla, string columna, string connectionString)
+        {
+            bool autoinc = false;
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            {
+                connection.Open();
+                string query = @"SELECT COLUMN_NAME 
+                         FROM INFORMATION_SCHEMA.COLUMNS 
+                         WHERE TABLE_NAME = @tabla 
+                         AND COLUMN_NAME = @columna
+                         AND COLUMNPROPERTY(OBJECT_ID(TABLE_SCHEMA + '.' + TABLE_NAME), COLUMN_NAME, 'IsIdentity') = 1;";
+
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@tabla", tabla);
+                    command.Parameters.AddWithValue("@columna", columna);
+                    var result = command.ExecuteScalar();
+                    if (result != null)
+                    {
+                        autoinc = true;
+                    }
+                }
+            }
+            return autoinc;
+        }
+
         /// <summary>
         /// Comprueba que el tipo de dato sea correcto en esa columna
         /// </summary>

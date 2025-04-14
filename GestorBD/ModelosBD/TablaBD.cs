@@ -26,6 +26,7 @@ namespace BBDD.Modelos
     { 
         public string ColumnaOrigen { get; set; }
         public string TablaOrigen { get; set; }
+        public bool DeleteCascade { get; set; } = false;
     }
     public class ColumnaInsert
     {
@@ -40,6 +41,11 @@ namespace BBDD.Modelos
     {
         public string Columna { get; set; }
         public string Valor { get; set; }
+    }
+    public class RegistroInsert
+    {
+        public string NombreColumna { get; set; }
+        public string ValorInsert { get; set; }
     }
     public class ColumnaBasica
     {
@@ -66,7 +72,8 @@ namespace BBDD.Modelos
     public enum TipoDato
     {
         @int,  
-        @double, 
+        @double,
+        @autoint,
         @string,   
         date,   
         @bool 
@@ -79,6 +86,8 @@ namespace BBDD.Modelos
             {
                 case TipoDato.@int:
                     return "INT";
+                case TipoDato.@autoint:
+                    return "INT IDENTITY(1,1)";
                 case TipoDato.@double:
                     return "DECIMAL(18,2)";
                 case TipoDato.@string:

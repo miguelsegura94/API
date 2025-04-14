@@ -110,7 +110,9 @@ namespace GestorBaseDatos.GestorBD.GestorBD
 
                                                 if (tipoSQL == foreignTipo)
                                                 {
-                                                    sb.Append($" FOREIGN KEY ({columna.Nombre}) REFERENCES {columna.ForeignKey.TablaOrigen}({columna.ForeignKey.ColumnaOrigen})");
+                                                    string deleteCascade = columna.ForeignKey.DeleteCascade ? "ON DELETE CASCADE" : "";
+                                                    sb.Append($" FOREIGN KEY ({columna.Nombre}) REFERENCES {columna.ForeignKey.TablaOrigen}({columna.ForeignKey.ColumnaOrigen}) {deleteCascade}");
+                                                    
                                                 }
                                                 else
                                                 {
