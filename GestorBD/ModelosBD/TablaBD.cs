@@ -40,12 +40,12 @@ namespace BBDD.Modelos
     public class RegistroDelete
     {
         public string Columna { get; set; }
-        public string Valor { get; set; }
+        public dynamic? Valor { get; set; }
     }
     public class RegistroInsert
     {
         public string NombreColumna { get; set; }
-        public string ValorInsert { get; set; }
+        public dynamic? ValorInsert { get; set; }
     }
     public class ColumnaBasica
     {
@@ -61,6 +61,11 @@ namespace BBDD.Modelos
     {
         public string NombreColumna { get; set; }
         public string ValorRegistro { get; set; }
+    }
+    public class BuscarForeignKey
+    {
+        public string NombreTabla { get; set; }
+        public string NombreColumna { get; set; }
     }
     public class RegistroMultipleEditar
     {

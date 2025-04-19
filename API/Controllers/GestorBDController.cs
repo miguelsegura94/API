@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using BBDD.Modelos;
 using System.Text.Json;
 using Microsoft.Data.SqlClient;
+using GestorBaseDatos.GestorBD.GestorBD;
 namespace API.Controllers
 {
     [ApiController]
@@ -138,12 +139,13 @@ namespace API.Controllers
         /// <param name="valor">Valor a buscar en la columna</param>
         /// <returns>Si es correcto devuelve uno o mas registros,si no un mensaje de error especificando cual es el error</returns>
         [HttpGet("ObtenerRegistroEnTablaPorValor/{tabla}/{columna}/{valor}")]
-        public IActionResult ObtenerRegistroEnTablaPorValor(string tabla,string columna,string valor)
+        public IActionResult ObtenerRegistroEnTablaPorValor(string tabla,string columna, string valor)
         {
             Gestion gestion = new Gestion();
+            
             try
             {
-                gestion = servicioBD.GetRegistroEnTablaPorValorServicio(tabla,columna,valor);
+                gestion = servicioBD.GetRegistroEnTablaPorValorServicio(tabla,columna, valor);
                 if (gestion.isCorrect())
                 {
                     return Ok(gestion);

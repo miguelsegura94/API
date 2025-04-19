@@ -43,7 +43,7 @@ namespace BBDD.Servicios
             gestion = _gestorBD.TestGestor(tabla,_connectionString);
             return gestion;
         }
-        public Gestion GetRegistroEnTablaPorValorServicio(string tabla, string columna, string valor)
+        public Gestion GetRegistroEnTablaPorValorServicio(string tabla, string columna, dynamic? valor)
         {
             Gestion gestion = new Gestion();
             gestion = _gestorBD.GetRegistroEnTablaPorValorGestor(tabla, columna, valor, _connectionString);

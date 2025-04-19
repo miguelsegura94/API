@@ -49,12 +49,19 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                                             gestion.setError($"Error: La tabla {nombreTabla} ya tiene primary key.");
                                             return gestion;
                                         }
-                                        sb.Append(" NOT NULL ");
-                                        sb.Append($" PRIMARY KEY ");
+                                        sb.Append(" NOT NULL PRIMARY KEY");
                                     }
                                     else if (!columnaAñadir.Null)
                                     {
-                                        sb.Append(" NOT NULL ");
+                                        if(!TablaTieneRegistros(nombreTabla, connectionString))
+                                        {
+                                            sb.Append(" NOT NULL ");
+                                        }
+                                        else
+                                        {
+                                            gestion.setError($"Error: Como la tabla tiene registros la columna tiene que ser null.");
+                                            return gestion;
+                                        }
                                     }
                                     if (columnaAñadir.ForeignKey != null && !string.IsNullOrEmpty(columnaAñadir.ForeignKey.ColumnaOrigen))
                                     {
