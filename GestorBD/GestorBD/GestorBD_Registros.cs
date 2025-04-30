@@ -108,19 +108,20 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                     connection.Open();
                     var valorReal = ExtraerValorReal(valor);
                     string where = " WHERE ";
-                    if (valorReal == null)
+                    if (valorReal == "null")
                     {
                         where += $"{columna} IS NULL";
                     }
                     else
                     {
-                        where += $"{columna} =@Valor";
+                        where += $"{columna} = @Valor";
                     }
                     string query = $"SELECT * FROM [{tabla}] {where} ";
+                    Console.WriteLine(query);
                     SqlCommand command = new SqlCommand(query, connection);
                     if (valorReal != null)
                     {
-                        command.Parameters.AddWithValue($"@valor", valorReal);
+                        command.Parameters.AddWithValue($"@Valor", valorReal);
                     }
                     SqlDataReader reader = command.ExecuteReader();
                     gestion.data = new List<dynamic>();
@@ -482,7 +483,6 @@ namespace GestorBaseDatos.GestorBD.GestorBD
             Gestion gestion = new Gestion();
             try
             {
-
                 if (!ExisteTabla(tablaBuscar, connectionString))
                 {
                     gestion.setError($"Error: No existe la tabla {tablaBuscar}");
@@ -490,12 +490,27 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                 }
                 for (int i = 0; i < registro.ValoresExistentes.Count; i++)
                 {
+                    var valorRealExistente = ExtraerValorReal(registro.ValoresExistentes[i].ValorRegistro);
+                    var valorRealNuevo = ExtraerValorReal(registro.ValoresNuevos[i].ValorRegistro);
+                    if(registro.ValoresExistentes[i].NombreColumna!= registro.ValoresNuevos[i].NombreColumna)
+                    {
+                        gestion.setError($"Error: La columna {registro.ValoresExistentes[i].NombreColumna} no coincide con la columna {registro.ValoresNuevos[i].NombreColumna}");
+                        return gestion;
+                    }
                     if (!ExisteColumna(tablaBuscar, registro.ValoresExistentes[i].NombreColumna, connectionString))
                     {
                         gestion.setError($"Error: En la tabla {tablaBuscar} no existe la columna {registro.ValoresExistentes[i].NombreColumna}");
                         return gestion;
                     }
-                    if (!TipoDatoCorrecto(tablaBuscar, registro.ValoresExistentes[i].NombreColumna, registro.ValoresExistentes[i].ValorRegistro, connectionString))
+                    if (!ColumnaPuedeSerNull(tablaBuscar, registro.ValoresExistentes[i].NombreColumna, connectionString))
+                    {
+                        if (valorRealExistente == null)
+                        {
+                            gestion.setError($"Error: El valor de la columna {registro.ValoresExistentes[i].NombreColumna} no puede ser null");
+                            return gestion;
+                        }
+                    }
+                    if (!TipoDatoCorrectoDynamic(tablaBuscar, registro.ValoresExistentes[i].NombreColumna, valorRealExistente, connectionString))
                     {
                         gestion.setError($"Error: El tipo de dato no concide con la columna {registro.ValoresExistentes[i].NombreColumna}");
                         return gestion;
@@ -505,29 +520,49 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                         gestion.setError($"Error: En la tabla {tablaBuscar} no existe la columna {registro.ValoresNuevos[i].NombreColumna}");
                         return gestion;
                     }
-                    if (!TipoDatoCorrecto(tablaBuscar, registro.ValoresNuevos[i].NombreColumna, registro.ValoresNuevos[i].ValorRegistro, connectionString))
+                    if (!ColumnaPuedeSerNull(tablaBuscar, registro.ValoresExistentes[i].NombreColumna, connectionString))
+                    {
+
+                        if (valorRealNuevo == null)
+                        {
+                            gestion.setError($"Error: El valor de la columna {registro.ValoresExistentes[i].NombreColumna} no puede ser null");
+                            return gestion;
+                        }
+                    }
+                    if (!TipoDatoCorrectoDynamic(tablaBuscar, registro.ValoresNuevos[i].NombreColumna, valorRealNuevo, connectionString))
                     {
                         gestion.setError($"Error: El tipo de dato no concide con la columna {registro.ValoresNuevos[i].NombreColumna}");
                         return gestion;
                     }
-                    if (!ExisteValor(tablaBuscar, registro.ValoresExistentes[i].NombreColumna, registro.ValoresExistentes[i].ValorRegistro, connectionString))
+                    if (!ExisteValor(tablaBuscar, registro.ValoresExistentes[i].NombreColumna, valorRealExistente, connectionString))
                     {
-                        gestion.setError($"Error: No existe el registro {registro.ValoresExistentes[i].ValorRegistro} en la columna {registro.ValoresExistentes[i].NombreColumna}");
+                        gestion.setError($"Error: No existe el registro {valorRealExistente} en la columna {registro.ValoresExistentes[i].NombreColumna}");
                         return gestion;
                     }
                 }
                 for (int i = 0; i < registro.ValoresExistentes.Count; i++)
                 {
+                    var valorRealExistente = ExtraerValorReal(registro.ValoresExistentes[i].ValorRegistro);
+                    var valorRealNuevo = ExtraerValorReal(registro.ValoresNuevos[i].ValorRegistro);
                     using (SqlConnection connection = new SqlConnection(connectionString))
                     {
                         connection.Open();
-                        string query = $"UPDATE {tablaBuscar} SET {registro.ValoresNuevos[i].NombreColumna} = @NuevoValor WHERE {registro.ValoresExistentes[i].NombreColumna} = @Valor";
+                        string query;
+                        if (valorRealExistente == null)
+                        {
+                            query = $"UPDATE {tablaBuscar} SET {registro.ValoresNuevos[i].NombreColumna} = @NuevoValor WHERE {registro.ValoresExistentes[i].NombreColumna} IS NULL";
+                        }
+                        else
+                        {
+                            query = $"UPDATE {tablaBuscar} SET {registro.ValoresNuevos[i].NombreColumna} = @NuevoValor WHERE {registro.ValoresExistentes[i].NombreColumna} = @Valor";
+                        }
                         using (SqlCommand command = new SqlCommand(query, connection))
                         {
-                            command.Parameters.AddWithValue("@Valor", registro.ValoresExistentes[i].ValorRegistro);
-                            command.Parameters.AddWithValue("@NuevoValor", registro.ValoresNuevos[i].ValorRegistro);
-                            int borrado = command.ExecuteNonQuery();
-                            if (borrado > 0)
+                            
+                            command.Parameters.AddWithValue("@Valor", valorRealExistente ?? DBNull.Value);
+                            command.Parameters.AddWithValue("@NuevoValor", valorRealNuevo ?? DBNull.Value);
+                            int editado = command.ExecuteNonQuery();
+                            if (editado > 0)
                             {
                                 gestion.Correct("Registro editado correctamente.");
                             }
@@ -560,12 +595,27 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                 }
                 for (int i = 0; i < registro.Condiciones.Count; i++)
                 {
+                    var valorRealCondicion = ExtraerValorReal(registro.Condiciones[i].ValorRegistro);
+                    var valorRealNuevo = ExtraerValorReal(registro.ValoresNuevos.ValorRegistro);
+                    if (registro.Condiciones[i].NombreColumna != registro.ValoresNuevos.NombreColumna)
+                    {
+                        gestion.setError($"Error: La columna {registro.Condiciones[i].NombreColumna} no coincide con la columna {registro.ValoresNuevos.NombreColumna}");
+                        return gestion;
+                    }
                     if (!ExisteColumna(tablaBuscar, registro.Condiciones[i].NombreColumna, connectionString))
                     {
                         gestion.setError($"Error: En la tabla {tablaBuscar} no existe la columna {registro.Condiciones[i].NombreColumna}");
                         return gestion;
                     }
-                    if (!TipoDatoCorrecto(tablaBuscar, registro.Condiciones[i].NombreColumna, registro.Condiciones[i].ValorRegistro, connectionString))
+                    if (!ColumnaPuedeSerNull(tablaBuscar, registro.Condiciones[i].NombreColumna, connectionString))
+                    {
+                        if (valorRealCondicion == null)
+                        {
+                            gestion.setError($"Error: El valor de la columna {registro.Condiciones[i].NombreColumna} no puede ser null");
+                            return gestion;
+                        }
+                    }
+                    if (!TipoDatoCorrectoDynamic(tablaBuscar, registro.Condiciones[i].NombreColumna, valorRealCondicion, connectionString))
                     {
                         gestion.setError($"Error: El tipo de dato no concide con la columna {registro.Condiciones[i].NombreColumna}");
                         return gestion;
@@ -575,14 +625,22 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                         gestion.setError($"Error: En la tabla {tablaBuscar} no existe la columna {registro.ValoresNuevos.NombreColumna}");
                         return gestion;
                     }
-                    if (!TipoDatoCorrecto(tablaBuscar, registro.ValoresNuevos.NombreColumna, registro.ValoresNuevos.ValorRegistro, connectionString))
+                    if (!ColumnaPuedeSerNull(tablaBuscar, registro.ValoresNuevos.NombreColumna, connectionString))
+                    {
+                        if (valorRealNuevo == null)
+                        {
+                            gestion.setError($"Error: El valor de la columna {registro.ValoresNuevos.NombreColumna} no puede ser null");
+                            return gestion;
+                        }
+                    }
+                    if (!TipoDatoCorrectoDynamic(tablaBuscar, registro.ValoresNuevos.NombreColumna, valorRealNuevo, connectionString))
                     {
                         gestion.setError($"Error: El tipo de dato no concide con la columna {registro.ValoresNuevos.NombreColumna}");
                         return gestion;
                     }
-                    if (!ExisteValor(tablaBuscar, registro.Condiciones[i].NombreColumna, registro.Condiciones[i].ValorRegistro, connectionString))
+                    if (!ExisteValor(tablaBuscar, registro.Condiciones[i].NombreColumna, valorRealCondicion, connectionString))
                     {
-                        gestion.setError($"Error: No existe el registro {registro.Condiciones[i].ValorRegistro} en la columna {registro.Condiciones[i].NombreColumna}");
+                        gestion.setError($"Error: No existe el registro {valorRealCondicion} en la columna {registro.Condiciones[i].NombreColumna}");
                         return gestion;
                     }
 
@@ -591,12 +649,22 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                 {
                     using (SqlConnection connection = new SqlConnection(connectionString))
                     {
+                        var valorRealCondicion = ExtraerValorReal(registro.Condiciones[i].ValorRegistro);
+                        var valorRealNuevo = ExtraerValorReal(registro.ValoresNuevos.ValorRegistro);
                         connection.Open();
-                        string query = $"UPDATE {tablaBuscar} SET {registro.ValoresNuevos.NombreColumna} = @NuevoValor WHERE {registro.Condiciones[i].NombreColumna} = @Valor";
+                        string query;
+                        if (valorRealCondicion == null)
+                        {
+                            query = $"UPDATE {tablaBuscar} SET {registro.ValoresNuevos.NombreColumna} = @NuevoValor WHERE {registro.Condiciones[i].NombreColumna} IS NULL";
+                        }
+                        else
+                        {
+                            query = $"UPDATE {tablaBuscar} SET {registro.ValoresNuevos.NombreColumna} = @NuevoValor WHERE {registro.Condiciones[i].NombreColumna} = @Valor";
+                        }
                         using (SqlCommand command = new SqlCommand(query, connection))
                         {
-                            command.Parameters.AddWithValue("@Valor", registro.Condiciones[i].ValorRegistro);
-                            command.Parameters.AddWithValue("@NuevoValor", registro.ValoresNuevos.ValorRegistro);
+                            command.Parameters.AddWithValue("@Valor", valorRealCondicion ?? DBNull.Value);
+                            command.Parameters.AddWithValue("@NuevoValor", valorRealNuevo ?? DBNull.Value);
                             int editado = command.ExecuteNonQuery();
                             if (editado > 0)
                             {
@@ -639,12 +707,22 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                 }
                 for (int i = 0; i < registro.Condiciones.Count; i++)
                 {
+                    var valorRealCondicion = ExtraerValorReal(registro.Condiciones[i].ValorRegistro);
+                    var valorRealNuevo = ExtraerValorReal(registro.ValoresNuevos.ValorRegistro);
                     if (!ExisteColumna(tablaBuscar, registro.Condiciones[i].NombreColumna, connectionString))
                     {
                         gestion.setError($"Error: En la tabla {tablaBuscar} no existe la columna {registro.Condiciones[i].NombreColumna}");
                         return gestion;
                     }
-                    if (!TipoDatoCorrecto(tablaBuscar, registro.Condiciones[i].NombreColumna, registro.Condiciones[i].ValorRegistro, connectionString))
+                    if (!ColumnaPuedeSerNull(tablaBuscar, registro.Condiciones[i].NombreColumna, connectionString))
+                    {
+                        if (valorRealCondicion == null)
+                        {
+                            gestion.setError($"Error: El valor de la columna {registro.Condiciones[i].NombreColumna} no puede ser null");
+                            return gestion;
+                        }
+                    }
+                    if (!TipoDatoCorrectoDynamic(tablaBuscar, registro.Condiciones[i].NombreColumna, registro.Condiciones[i].ValorRegistro, connectionString))
                     {
                         gestion.setError($"Error: El tipo de dato no concide con la columna {registro.Condiciones[i].NombreColumna}");
                         return gestion;
@@ -654,7 +732,15 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                         gestion.setError($"Error: En la tabla {tablaBuscar} no existe la columna {registro.ValoresNuevos.NombreColumna}");
                         return gestion;
                     }
-                    if (!TipoDatoCorrecto(tablaBuscar, registro.ValoresNuevos.NombreColumna, registro.ValoresNuevos.ValorRegistro, connectionString))
+                    if (!ColumnaPuedeSerNull(tablaBuscar, registro.ValoresNuevos.NombreColumna, connectionString))
+                    {
+                        if (valorRealNuevo == null)
+                        {
+                            gestion.setError($"Error: El valor de la columna {registro.ValoresNuevos.NombreColumna} no puede ser null");
+                            return gestion;
+                        }
+                    }
+                    if (!TipoDatoCorrectoDynamic(tablaBuscar, registro.ValoresNuevos.NombreColumna, registro.ValoresNuevos.ValorRegistro, connectionString))
                     {
                         gestion.setError($"Error: El tipo de dato no concide con la columna {registro.ValoresNuevos.NombreColumna}");
                         return gestion;
@@ -675,8 +761,10 @@ namespace GestorBaseDatos.GestorBD.GestorBD
 
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
+
                     for (int i = 0; i < registro.Condiciones.Count; i++)
                     {
+
                         sb.Append($"{registro.Condiciones[i].NombreColumna} = @valor{i}");
                         if (i < registro.Condiciones.Count - 1)
                         {
@@ -690,10 +778,13 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                     {
                         for (int i = 0; i < registro.Condiciones.Count; i++)
                         {
-                            command.Parameters.AddWithValue($"@valor{i}", registro.Condiciones[i].ValorRegistro);
+                            var valorRealCondicion = ExtraerValorReal(registro.Condiciones[i].ValorRegistro);
+                            command.Parameters.AddWithValue($"@valor{i}", valorRealCondicion ?? DBNull.Value);
                         }
-                        command.Parameters.AddWithValue("@NuevoValor", registro.ValoresNuevos.ValorRegistro);
+                        var valorRealNuevo = ExtraerValorReal(registro.ValoresNuevos.ValorRegistro);
+                        command.Parameters.AddWithValue("@NuevoValor", valorRealNuevo ?? DBNull.Value);
                         int editado = command.ExecuteNonQuery();
+                        
                         if (editado > 0)
                         {
                             gestion.Correct("Registro editado correctamente.");
@@ -704,9 +795,7 @@ namespace GestorBaseDatos.GestorBD.GestorBD
                         }
                     }
                 }
-
             }
-
             catch (Exception ex)
             {
                 gestion.setError("Error de tipo {0}, mensaje: {1}", new List<dynamic>() { ex.GetType().Name, ex.Message });

@@ -50,7 +50,7 @@ namespace BBDD.Modelos
     public class ColumnaBasica
     {
         public string NombreColumna { get; set; }
-        public string ValorRegistro { get; set; }
+        public dynamic? ValorRegistro { get; set; }
     }
     public class RegistroEditar
     {
@@ -60,7 +60,7 @@ namespace BBDD.Modelos
     public class Condicion
     {
         public string NombreColumna { get; set; }
-        public string ValorRegistro { get; set; }
+        public dynamic? ValorRegistro { get; set; }
     }
     public class BuscarForeignKey
     {

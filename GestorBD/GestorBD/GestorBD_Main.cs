@@ -9,6 +9,7 @@ using BBDD.Modelos;
 using GestorBaseDatos.GestionCarpeta;
 using Microsoft.Data.SqlClient;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Win32;
 using static System.Collections.Specialized.BitVector32;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -212,14 +213,25 @@ namespace GestorBaseDatos.GestorBD.GestorBD
         public bool ExisteValor(string tabla, string columna, dynamic? valor, string connectionString)
         {
             bool existe = false;
+            var valorReal = ExtraerValorReal(valor);
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
+                string where = " WHERE ";
+                if (valorReal == null)
+                {
+                    where += $"{columna} IS NULL";
+                }
+                else
+                {
+                    where += $"{columna} =@Valor";
+                }
                 connection.Open();
-                string query = $"SELECT COUNT(*) FROM {tabla} WHERE {columna} = @valor";
+                string query = $"SELECT COUNT(*) FROM {tabla} {where} ";
 
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
-                    command.Parameters.AddWithValue("@valor", valor);
+                    
+                    command.Parameters.AddWithValue("@valor", valorReal ?? DBNull.Value);
                     int count = (int)command.ExecuteScalar();
                     if (count > 0)
                     {
