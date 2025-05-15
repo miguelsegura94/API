@@ -25,8 +25,7 @@ namespace BBDD.Servicios
             //context = _context;
             _connectionString = connectionString;
         }
-        //TODO: hacer todo asincrono
-        //TODO: mirar como funcionan las transacciones de base de datos (la idea del context.savechanges es la misma que las transactions el commit pero sin hacer una transaction como tal)
+        
         
         public Gestion GetListaUsuario()
         {

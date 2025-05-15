@@ -19,8 +19,6 @@ namespace API.Controllers
         {
             servicioUsuario = _servicioUsuario;
         }
-        //TODO hacer el metodo comprar skin, que busque si existe la skin por id, y si existe, que mire que tenga dinero
-        //y asignarsela al usuario restando el precio
         [HttpGet("")]//devuelve todos
         public IActionResult GetLista()
         {
